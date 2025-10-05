@@ -294,4 +294,4 @@ python3 -m http.server 8000
 ---
 
 **작성일**: 2025-10-04
-**작성자**: Arawn Park (with Claude Code)
+**작성자**: JiYoung (with Claude Code)
