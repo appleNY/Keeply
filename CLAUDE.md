@@ -7,6 +7,19 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **목적**: 개인용 메모 및 링크 관리 웹앱 (모바일 중심)
 - **사용자 수준**: 코딩 초보자 - 교육적 접근 필요
 
+## 기술 스택
+- **프론트엔드**: Vanilla JavaScript (ES6 Modules)
+  - 프레임워크 없이 순수 JavaScript를 사용하여 학습 효과 극대화
+  - ES6 모듈 시스템으로 코드 구조화
+- **UI 프레임워크**: Bootstrap 5.3
+  - CDN 방식으로 빠르게 시작
+  - 반응형 모바일 우선 디자인
+  - 커스텀 CSS로 스타일 확장
+- **백엔드/데이터베이스**: Firebase
+  - **Firestore**: 실시간 NoSQL 데이터베이스
+  - Firebase SDK CDN 방식 사용 (버전 10.7.1)
+  - 빠른 프로토타이핑과 배포에 최적화
+
 ## 커뮤니케이션 원칙
 1. **한국어 사용**: 모든 응답은 한국어로 작성
 2. **쉬운 용어**: 전문 용어 사용 시 반드시 설명 추가
@@ -21,19 +34,33 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 → node_modules 폴더가 생성되며, 여기에 필요한 코드들이 저장됩니다.
 ```
 
-## 프로젝트 구조 (예정)
+## 프로젝트 구조
 ```
 keeply/
-├── frontend/          # 사용자가 보는 화면 (React)
-├── backend/           # 데이터 저장/관리 서버
-├── docs/              # 학습 문서
-└── CLAUDE.md          # 이 파일
+├── index.html         # 메인 HTML 파일
+├── scripts/           # JavaScript 파일들
+│   ├── app.js         # 메인 애플리케이션 로직
+│   ├── firebase.js    # Firebase 연동 및 데이터베이스 함수
+│   └── utils.js       # 유틸리티 함수들
+├── styles/            # CSS 파일들
+│   └── main.css       # 커스텀 스타일
+├── assets/            # 이미지, 아이콘 등
+├── CLAUDE.md          # AI 개발 도우미 가이드
+├── AGENT.md           # 사용자를 위한 AI 협업 가이드
+└── TODO.md            # 프로젝트 할 일 목록
 ```
 
 ## 개발 환경 설정
-- Node.js 설치 필요
-- VS Code 추천 (또는 사용자가 선호하는 에디터)
-- Git 설치 (버전 관리용)
+- **에디터**: VS Code 추천 (또는 사용자가 선호하는 에디터)
+- **버전 관리**: Git 설치 필요
+- **웹 서버**: Live Server 확장 프로그램 사용 권장
+  - VS Code에서 "Live Server" 확장 설치
+  - HTML 파일에서 우클릭 → "Open with Live Server"
+  - 파일 변경 시 자동으로 브라우저 새로고침
+- **Firebase 설정**:
+  - Firebase Console에서 프로젝트 생성
+  - Firestore Database 활성화
+  - `scripts/firebase.js`에 Firebase 설정 정보 입력
 
 ## 주요 기능 요구사항
 1. 메모 작성/수정/삭제
@@ -42,10 +69,13 @@ keeply/
 4. 간단하고 직관적인 사용자 경험
 
 ## 코드 작성 시 주의사항
-- 코드에 주석을 한국어로 충분히 작성
-- 변수명은 영어로 하되, 의미가 명확하게
-- 한 번에 작은 기능씩 구현하여 이해도 향상
-- 각 단계마다 테스트 가능한 상태 유지
+- **주석**: 코드에 한국어 주석을 충분히 작성
+- **변수명**: 영어로 작성하되 의미가 명확하게 (예: `linkList`, `addButton`)
+- **모듈화**: ES6 모듈 시스템 사용 (`import`/`export`)
+- **점진적 개발**: 한 번에 작은 기능씩 구현하여 이해도 향상
+- **테스트**: 각 단계마다 브라우저에서 동작 확인
+- **Bootstrap 활용**: 가능하면 Bootstrap 컴포넌트 먼저 사용, 필요시 커스텀 CSS 추가
+- **Firebase 연동**: 모든 데이터베이스 작업은 `scripts/firebase.js`의 함수 사용
 
 ## 학습 중심 개발
 - 새로운 개념 도입 시 반드시 설명 추가

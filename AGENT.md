@@ -54,17 +54,65 @@ AI가 명령어를 제안하면 항상 다음을 확인:
 - `[브라우저에서]` → Chrome, Safari 등 웹브라우저에서
 - `[파일 생성]` → VS Code가 자동으로 파일 생성
 
-## 📝 일반적인 명령어 설명
+## 📝 Keeply 프로젝트 기술 스택
 
-### npm이란?
-Node Package Manager - 다른 개발자들이 만든 코드(라이브러리)를 설치하는 도구
+### 🎨 Vanilla JavaScript + Bootstrap + Firebase
+이 프로젝트는 초보자 학습을 위해 최대한 간단한 구조로 만들어졌습니다.
 
-**자주 사용하는 명령어:**
-```bash
-npm install          # 필요한 라이브러리 모두 설치
-npm start            # 개발 서버 실행 (웹사이트 미리보기)
-npm run build        # 배포용 파일 만들기
+**Vanilla JavaScript (순수 자바스크립트)**
+- React, Vue 같은 복잡한 프레임워크를 사용하지 않음
+- 기본 JavaScript 문법을 배우기에 최적
+- 파일 구조:
+  - `scripts/app.js` - 메인 로직
+  - `scripts/firebase.js` - 데이터베이스 연결
+  - `scripts/utils.js` - 도우미 함수들
+
+**Bootstrap 5 (UI 프레임워크)**
+- 예쁜 디자인을 쉽게 만들 수 있는 도구
+- 버튼, 카드, 입력창 등이 이미 만들어져 있음
+- 모바일에서 자동으로 잘 보이도록 조정됨
+- CDN으로 사용 - 별도 설치 불필요!
+
+**Firebase (백엔드 서비스)**
+- 구글이 제공하는 무료 백엔드 서비스
+- Firestore: 데이터를 저장하는 데이터베이스
+- 복잡한 서버 없이 데이터 저장/불러오기 가능
+- 실시간 동기화 지원
+
+### 💡 왜 npm을 사용하지 않나요?
+이 프로젝트는 **CDN(Content Delivery Network)** 방식을 사용합니다:
+
+**CDN 방식의 장점:**
+- ✅ 설치 과정 없음 - 바로 시작 가능
+- ✅ HTML 파일을 브라우저에서 바로 열면 작동
+- ✅ 복잡한 빌드 과정 불필요
+- ✅ 학습에 집중할 수 있음
+
+**어떻게 작동하나요?**
+```html
+<!-- Bootstrap을 인터넷에서 직접 불러옴 -->
+<link href="https://cdn.jsdelivr.net/.../bootstrap.min.css">
+
+<!-- Firebase도 인터넷에서 직접 불러옴 -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/.../firebase-app.js';
+</script>
 ```
+
+### 🌐 프로젝트 실행 방법
+
+**방법 1: Live Server 사용 (추천)**
+1. VS Code에서 "Live Server" 확장 프로그램 설치
+2. `index.html` 파일에서 우클릭
+3. "Open with Live Server" 선택
+4. 브라우저가 자동으로 열림
+5. 파일 수정하면 자동으로 새로고침됨
+
+**방법 2: 브라우저에서 직접 열기**
+1. `index.html` 파일을 더블클릭
+2. 기본 브라우저에서 열림
+3. ⚠️ 주의: Firebase 기능이 작동 안 할 수 있음 (CORS 정책 때문)
+4. 간단한 테스트용으로만 사용
 
 ### Git이란?
 코드의 변경 이력을 저장하는 도구 (게임 세이브 포인트 같은 것)
@@ -84,7 +132,8 @@ git commit -m "메시지"  # 변경사항 저장 (세이브)
 
 ### 코드 설명
 - "이 함수가 뭐 하는 거야?"
-- "useState가 뭐야?"
+- "import와 export가 뭐야?"
+- "Bootstrap 클래스는 어떻게 사용하는 거야?"
 
 ### 오류 해결
 - "이 에러 메시지가 무슨 뜻이야?"
@@ -95,8 +144,10 @@ git commit -m "메시지"  # 변경사항 저장 (세이브)
 - "모바일에서 더 잘 보이게 해줘"
 
 ### 학습 질문
-- "React가 뭐야?"
-- "API가 뭔지 쉽게 설명해줘"
+- "Firebase Firestore가 뭐야?"
+- "ES6 모듈이 뭔지 쉽게 설명해줘"
+- "Bootstrap 그리드 시스템이 어떻게 작동해?"
+- "async/await가 뭐야?"
 
 ### TODO 리스트 관리
 - "TODO 리스트 보여줘"
@@ -143,7 +194,7 @@ git commit -m "메시지"  # 변경사항 저장 (세이브)
 > "메모 앱에 검색 기능을 추가하고 싶어. 제목으로 메모를 찾을 수 있게 해줘"
 
 **에러 해결:**
-> "npm start를 실행했는데 'port already in use' 에러가 나. 어떻게 해결해?"
+> "브라우저 콘솔에 'Firebase configuration error'가 나. 어떻게 해결해?"
 
 **코드 이해:**
 > "map() 함수가 여기서 어떤 역할을 하는 거야? 예시로 설명해줘"
@@ -151,14 +202,29 @@ git commit -m "메시지"  # 변경사항 저장 (세이브)
 **개선 요청:**
 > "이 버튼이 모바일에서 너무 작아. 더 크게 만들어줘"
 
-## 🚀 프로젝트 시작 체크리스트
+## 🚀 Keeply 프로젝트 시작 체크리스트
 
-- [ ] Node.js 설치됨
+### 필수 준비사항
 - [ ] VS Code 설치됨
-- [ ] 터미널 열기 방법 알고 있음
+- [ ] Live Server 확장 프로그램 설치됨
+- [ ] Git 설치됨 (버전 관리용)
+- [ ] 웹 브라우저 (Chrome, Safari, Edge 등)
+
+### Firebase 설정
+- [ ] Firebase 계정 생성 (Google 계정으로 가능)
+- [ ] Firebase Console에서 새 프로젝트 생성
+- [ ] Firestore Database 활성화
+- [ ] `scripts/firebase.js`에 설정 정보 입력
+
+### 학습 준비
 - [ ] AI에게 질문하는 방법 이해함
-- [ ] Git 기본 개념 이해함
+- [ ] Git 기본 개념 이해함 (add, commit)
+- [ ] 브라우저 개발자 도구 열기 방법 앎 (F12)
 - [ ] 첫 번째 작은 기능 아이디어 정함
+
+### 선택사항 (나중에 해도 됨)
+- [ ] GitHub 계정 생성 (코드 백업용)
+- [ ] Node.js 설치 (지금은 필요 없음)
 
 ---
 
