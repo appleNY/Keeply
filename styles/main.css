@@ -1,6 +1,6 @@
-/* 전체 기본 설정 - 따뜻한 베이지 톤 */
+/* 전체 기본 설정 - 청록/보라 톤 */
 body {
-    background: #f5e9e9;
+    background: linear-gradient(135deg, #e8f5f7 0%, #f0e6f6 100%);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     margin: 0;
     padding: 0;
@@ -9,40 +9,58 @@ body {
 
 /* 메인 래퍼 - 중앙 정렬 */
 .main-wrapper {
-    max-width: 680px;
+    max-width: 600px;
     margin: 0 auto;
-    padding: 40px 20px;
+    padding: 32px 10px 60px;
 }
 
 /* 프로필 영역 */
 .profile-section {
     text-align: center;
-    margin-bottom: 40px;
+    margin-bottom: 56px;
+    padding-bottom: 32px;
+    border-bottom: 1px solid rgba(123, 97, 255, 0.15);
 }
 
 .profile-image {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 140px;
+    height: 140px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 50%;
+    border: 5px solid #7b61ff;
+    box-shadow: 0 4px 20px rgba(123, 97, 255, 0.3);
+    overflow: hidden;
 }
 
 .profile-image img {
-    width: 100px;
-    height: 100px;
-    border-radius: 50%;
-    border: 4px solid #d4a5a5;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    width: 120% !important;
+    height: 120% !important;
+    object-fit: cover;
+    display: block;
+    margin: 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
 }
 
 .profile-name {
-    font-size: 1.8rem;
+    font-size: 3rem;
     font-weight: 700;
-    color: #8b4f4f;
-    margin-bottom: 8px;
+    color: #4a3f8f;
+    margin-bottom: 12px;
+    letter-spacing: -1px;
 }
 
 .profile-bio {
-    font-size: 1rem;
-    color: #a56b6b;
+    font-size: 1.4rem;
+    color: #1a9b9f;
     margin-bottom: 0;
+    font-weight: 400;
 }
 
 /* 링크 컨테이너 */
@@ -53,76 +71,90 @@ body {
 /* 컨트롤 영역 (검색 & 필터) */
 .controls-section {
     display: flex;
-    gap: 12px;
-    margin-bottom: 24px;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 28px;
 }
 
 .search-input,
 .filter-select {
-    border: 2px solid #d4a5a5;
-    border-radius: 8px;
-    padding: 12px 16px;
-    font-size: 1rem;
-    background: rgba(255, 255, 255, 0.8);
-    color: #8b4f4f;
-    transition: all 0.2s;
+    border: 2px solid rgba(123, 97, 255, 0.3);
+    border-radius: 10px;
+    padding: 13px 18px;
+    font-size: 1.1rem;
+    background: rgba(255, 255, 255, 0.9);
+    color: #4a3f8f;
+    transition: all 0.25s ease;
 }
 
 .search-input {
-    flex: 1;
+    flex: 0 1 65%;
+    max-width: 350px;
+}
+
+.search-input::placeholder {
+    color: #a599d9;
 }
 
 .filter-select {
     min-width: 140px;
+    cursor: pointer;
+    padding-right: 45px;
+    padding-left: 18px;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234a3f8f' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 18px center;
 }
 
 .search-input:focus,
 .filter-select:focus {
     outline: none;
     background: white;
-    border-color: #c17a7a;
-    box-shadow: 0 2px 8px rgba(212, 165, 165, 0.3);
+    border-color: #7b61ff;
+    box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.15);
+    transform: translateY(-1px);
 }
 
 /* 링크 리스트 */
 .link-list {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 14px;
 }
 
 /* 링크 버튼 스타일 (Linktree처럼) */
 .link-button {
     display: block;
     width: 100%;
-    padding: 20px 24px;
-    background: rgba(255, 255, 255, 0.8);
-    border: 2px solid #d4a5a5;
-    border-radius: 12px;
+    padding: 24px 26px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid rgba(26, 155, 159, 0.3);
+    border-radius: 16px;
     text-decoration: none;
-    color: #8b4f4f;
-    transition: all 0.3s ease;
+    color: #4a3f8f;
+    transition: all 0.25s ease;
     position: relative;
     cursor: pointer;
 }
 
 .link-button:hover {
     background: white;
-    transform: scale(1.02);
-    border-color: #c17a7a;
-    box-shadow: 0 8px 20px rgba(212, 165, 165, 0.3);
+    transform: translateY(-2px);
+    border-color: #1a9b9f;
+    box-shadow: 0 6px 20px rgba(26, 155, 159, 0.25);
 }
 
 .link-button-content {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: 20px;
 }
 
 .link-thumbnail-small {
-    width: 60px;
-    height: 60px;
-    border-radius: 8px;
+    width: 80px;
+    height: 80px;
+    border-radius: 10px;
     object-fit: cover;
     flex-shrink: 0;
 }
@@ -133,21 +165,21 @@ body {
 }
 
 .link-title {
-    font-size: 1.1rem;
+    font-size: 1.3rem;
     font-weight: 600;
-    color: #8b4f4f;
-    margin-bottom: 4px;
+    color: #4a3f8f;
+    margin-bottom: 6px;
 }
 
 .link-description {
-    font-size: 0.9rem;
-    color: #a56b6b;
-    margin-bottom: 4px;
+    font-size: 1.05rem;
+    color: #1a9b9f;
+    margin-bottom: 6px;
 }
 
 .link-meta {
-    font-size: 0.8rem;
-    color: #c17a7a;
+    font-size: 0.95rem;
+    color: #7b61ff;
     display: flex;
     gap: 12px;
 }
@@ -159,19 +191,19 @@ body {
     right: 12px;
     font-size: 20px;
     cursor: pointer;
-    color: #d4a5a5;
+    color: #a599d9;
     z-index: 10;
     padding: 4px;
     transition: color 0.2s;
 }
 
 .favorite-icon:hover {
-    color: #c17a7a;
+    color: #7b61ff;
 }
 
 /* 요약 없음 텍스트 */
 .no-summary {
-    color: #c9a0a0;
+    color: #a599d9;
     font-style: italic;
 }
 
@@ -179,35 +211,62 @@ body {
 .add-link-btn {
     width: 100%;
     padding: 18px 24px;
-    margin-top: 24px;
-    background: #d4a5a5;
+    margin-top: 28px;
+    background: linear-gradient(135deg, #7b61ff 0%, #1a9b9f 100%);
     border: none;
-    border-radius: 12px;
+    border-radius: 14px;
     color: white;
-    font-size: 1.1rem;
+    font-size: 1.25rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 12px rgba(123, 97, 255, 0.3);
 }
 
 .add-link-btn:hover {
-    background: #c17a7a;
-    transform: scale(1.02);
-    box-shadow: 0 8px 20px rgba(212, 165, 165, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(123, 97, 255, 0.4);
+}
+
+.add-link-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 4px 12px rgba(123, 97, 255, 0.3);
 }
 
 /* 반응형: 모바일 */
 @media (max-width: 768px) {
     .main-wrapper {
-        padding: 24px 16px;
+        padding: 24px 8px 48px;
+    }
+
+    .profile-section {
+        margin-bottom: 40px;
+        padding-bottom: 24px;
+    }
+
+    .profile-image {
+        width: 110px;
+        height: 110px;
+        border: 4px solid #7b61ff;
     }
 
     .profile-name {
-        font-size: 1.5rem;
+        font-size: 2.2rem;
+    }
+
+    .profile-bio {
+        font-size: 1.1rem;
     }
 
     .controls-section {
         flex-direction: column;
+        gap: 10px;
+        margin-bottom: 24px;
+    }
+
+    .search-input,
+    .filter-select {
+        font-size: 1rem;
     }
 
     .filter-select {
@@ -215,15 +274,33 @@ body {
     }
 
     .link-button {
-        padding: 16px 20px;
+        padding: 20px 20px;
+    }
+
+    .link-button-content {
+        gap: 16px;
     }
 
     .link-thumbnail-small {
-        width: 50px;
-        height: 50px;
+        width: 70px;
+        height: 70px;
     }
 
     .link-title {
-        font-size: 1rem;
+        font-size: 1.15rem;
+    }
+
+    .link-description {
+        font-size: 0.95rem;
+    }
+
+    .link-meta {
+        font-size: 0.85rem;
+    }
+
+    .add-link-btn {
+        margin-top: 24px;
+        padding: 16px 24px;
+        font-size: 1.1rem;
     }
 }
