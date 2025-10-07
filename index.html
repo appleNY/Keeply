@@ -2,14 +2,27 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Keeply">
+    <meta name="description" content="개인용 메모 및 링크 관리 웹앱">
+    <meta name="theme-color" content="#7b61ff">
     <title>Keeply - 나의 링크 관리</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
 
     <!-- Bootstrap CSS (CDN) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
+    <!-- 웹폰트: Noto Sans KR (한글) + Poppins (영문) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
     <!-- 우리가 만든 CSS -->
-    <link rel="stylesheet" href="styles/main.css?v=13">
+    <link rel="stylesheet" href="styles/main.css?v=17">
 </head>
 <body>
     <!-- 메인 컨테이너 -->

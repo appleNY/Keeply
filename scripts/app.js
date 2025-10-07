@@ -39,7 +39,7 @@ function createLinkCard(link) {
                 ${favoriteIcon}
             </span>
             <div class="link-button-content">
-                <img src="${link.thumbnail}" class="link-thumbnail-small" alt="${link.title}">
+                <img src="${link.thumbnail}" class="link-thumbnail-small" alt="${link.title}" loading="lazy">
                 <div class="link-info">
                     <div class="link-title">${link.title}</div>
                     <div class="link-description ${summaryClass}">${summary}</div>
