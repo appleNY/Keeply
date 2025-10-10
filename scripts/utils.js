@@ -55,3 +55,36 @@ export async function fetchMetadata(url) {
         description: ''
     };
 }
+
+/**
+ * 도메인별 그라데이션 색상 생성
+ */
+export function getDomainColor(domain) {
+    const colors = [
+        ['#7b61ff', '#1a9b9f'], // 보라-청록 (기본)
+        ['#ff6b6b', '#ff8787'], // 빨강
+        ['#4ecdc4', '#44a08d'], // 청록-초록
+        ['#f093fb', '#f5576c'], // 핑크-빨강
+        ['#4facfe', '#00f2fe'], // 파랑
+        ['#43e97b', '#38f9d7'], // 초록-청록
+        ['#fa709a', '#fee140'], // 핑크-노랑
+        ['#30cfd0', '#330867'], // 청록-보라
+    ];
+
+    // 도메인 문자열을 숫자로 변환하여 색상 선택
+    let hash = 0;
+    for (let i = 0; i < domain.length; i++) {
+        hash = domain.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const index = Math.abs(hash) % colors.length;
+    return colors[index];
+}
+
+/**
+ * 도메인 첫 글자 추출
+ */
+export function getDomainInitial(domain) {
+    // www. 제거하고 첫 글자 반환
+    const cleanDomain = domain.replace('www.', '');
+    return cleanDomain.charAt(0).toUpperCase();
+}

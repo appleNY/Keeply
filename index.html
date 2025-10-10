@@ -22,7 +22,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- 우리가 만든 CSS -->
-    <link rel="stylesheet" href="styles/main.css?v=17">
+    <link rel="stylesheet" href="styles/main.css?v=20">
 </head>
 <body>
     <!-- 메인 컨테이너 -->
@@ -32,15 +32,22 @@
             <div class="profile-image">
                 <img src="assets/images/profile.png?v=1" alt="프로필">
             </div>
-            <h1 class="profile-name">Keeply</h1>
-            <p class="profile-bio">나의 링크 저장소</p>
+            <div class="profile-info">
+                <h1 class="profile-name">Keeply</h1>
+                <p class="profile-bio">나의 링크 저장소</p>
+            </div>
         </header>
 
         <!-- 메인 컨텐츠 -->
         <main class="links-container">
             <!-- 검색 & 필터 -->
             <div class="controls-section">
-                <input type="text" class="search-input" id="searchInput" placeholder="검색...">
+                <input type="text" class="search-input" id="searchInput" placeholder="링크 검색...">
+                <div class="filter-chips" id="filterChips">
+                    <button class="filter-chip active" data-filter="all">전체</button>
+                    <button class="filter-chip" data-filter="favorite">⭐ 즐겨찾기</button>
+                    <button class="filter-chip" data-filter="recent">🕒 최신순</button>
+                </div>
                 <select class="filter-select" id="filterSelect">
                     <option value="all">전체</option>
                     <option value="favorite">즐겨찾기</option>
