@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Keeply">
     <meta name="description" content="개인용 메모 및 링크 관리 웹앱">
-    <meta name="theme-color" content="#7b61ff">
+    <meta name="theme-color" content="#BA797D">
     <title>Keeply - 나의 링크 관리</title>
 
     <!-- PWA Manifest -->
@@ -22,7 +22,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
 
     <!-- 우리가 만든 CSS -->
-    <link rel="stylesheet" href="styles/main.css?v=20">
+    <link rel="stylesheet" href="styles/main.css?v=21">
 </head>
 <body>
     <!-- 메인 컨테이너 -->
@@ -45,8 +45,8 @@
                 <input type="text" class="search-input" id="searchInput" placeholder="링크 검색...">
                 <div class="filter-chips" id="filterChips">
                     <button class="filter-chip active" data-filter="all">전체</button>
-                    <button class="filter-chip" data-filter="favorite">⭐ 즐겨찾기</button>
-                    <button class="filter-chip" data-filter="recent">🕒 최신순</button>
+                    <button class="filter-chip" data-filter="favorite">즐겨찾기</button>
+                    <button class="filter-chip" data-filter="recent">최신순</button>
                 </div>
                 <select class="filter-select" id="filterSelect">
                     <option value="all">전체</option>
@@ -65,6 +65,19 @@
                 + 새 링크 추가
             </button>
         </main>
+    </div>
+
+    <!-- 삭제 확인 모달 -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-content">
+            <div class="modal-icon">🗑️</div>
+            <h3 class="modal-title">링크를 삭제하시겠어요?</h3>
+            <p class="modal-message">삭제된 링크는 복구할 수 없습니다.</p>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" id="cancelDeleteBtn">취소</button>
+                <button class="modal-btn confirm" id="confirmDeleteBtn">삭제</button>
+            </div>
+        </div>
     </div>
 
     <!-- Bootstrap JS (CDN) -->

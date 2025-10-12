@@ -57,18 +57,18 @@ export async function fetchMetadata(url) {
 }
 
 /**
- * 도메인별 그라데이션 색상 생성
+ * 도메인별 그라데이션 색상 생성 (Burnished Lilac 팔레트)
  */
 export function getDomainColor(domain) {
     const colors = [
-        ['#7b61ff', '#1a9b9f'], // 보라-청록 (기본)
-        ['#ff6b6b', '#ff8787'], // 빨강
-        ['#4ecdc4', '#44a08d'], // 청록-초록
-        ['#f093fb', '#f5576c'], // 핑크-빨강
-        ['#4facfe', '#00f2fe'], // 파랑
-        ['#43e97b', '#38f9d7'], // 초록-청록
-        ['#fa709a', '#fee140'], // 핑크-노랑
-        ['#30cfd0', '#330867'], // 청록-보라
+        ['#BA797D', '#8C3F5C'], // 기본: 분홍-진한분홍
+        ['#C5AEBF', '#8C3F5C'], // 연한보라-진한분홍
+        ['#E6CFD7', '#BA797D'], // 아주연한핑크-분홍
+        ['#8C3F5C', '#330818'], // 진한분홍-가장진한
+        ['#BA797D', '#00666C'], // 분홍-청록(포인트)
+        ['#00666C', '#8C3F5C'], // 청록-진한분홍
+        ['#C5AEBF', '#E6CFD7'], // 연한보라-아주연한핑크
+        ['#330818', '#8C3F5C'], // 가장진한-진한분홍
     ];
 
     // 도메인 문자열을 숫자로 변환하여 색상 선택
@@ -87,4 +87,58 @@ export function getDomainInitial(domain) {
     // www. 제거하고 첫 글자 반환
     const cleanDomain = domain.replace('www.', '');
     return cleanDomain.charAt(0).toUpperCase();
+}
+
+/**
+ * 도메인에 따른 아이콘 반환
+ */
+export function getDomainIcon(domain) {
+    const lowerDomain = domain.toLowerCase();
+
+    // 개발/코드 관련
+    if (lowerDomain.includes('github')) return '💻';
+    if (lowerDomain.includes('gitlab')) return '🦊';
+    if (lowerDomain.includes('stackoverflow')) return '📚';
+    if (lowerDomain.includes('developer.mozilla')) return '🔧';
+    if (lowerDomain.includes('codepen')) return '✏️';
+
+    // 디자인
+    if (lowerDomain.includes('figma')) return '🎨';
+    if (lowerDomain.includes('dribbble')) return '🏀';
+    if (lowerDomain.includes('behance')) return '🎭';
+
+    // 영상
+    if (lowerDomain.includes('youtube') || lowerDomain.includes('youtu.be')) return '▶️';
+    if (lowerDomain.includes('vimeo')) return '🎬';
+    if (lowerDomain.includes('twitch')) return '📺';
+
+    // 소셜미디어
+    if (lowerDomain.includes('twitter') || lowerDomain.includes('x.com')) return '🐦';
+    if (lowerDomain.includes('instagram')) return '📷';
+    if (lowerDomain.includes('facebook')) return '👥';
+    if (lowerDomain.includes('linkedin')) return '💼';
+
+    // 블로그/문서
+    if (lowerDomain.includes('medium')) return '📝';
+    if (lowerDomain.includes('notion')) return '📋';
+    if (lowerDomain.includes('blog') || lowerDomain.includes('tistory')) return '✍️';
+    if (lowerDomain.includes('docs.') || lowerDomain.includes('documentation')) return '📖';
+
+    // UI/CSS 프레임워크
+    if (lowerDomain.includes('bootstrap')) return '🅱️';
+    if (lowerDomain.includes('tailwind')) return '🌊';
+
+    // 쇼핑
+    if (lowerDomain.includes('amazon')) return '🛒';
+    if (lowerDomain.includes('ebay') || lowerDomain.includes('shop')) return '🛍️';
+
+    // 음악
+    if (lowerDomain.includes('spotify')) return '🎵';
+    if (lowerDomain.includes('soundcloud')) return '🎧';
+
+    // 뉴스/미디어
+    if (lowerDomain.includes('news') || lowerDomain.includes('naver')) return '📰';
+
+    // 기본값
+    return '🔗';
 }

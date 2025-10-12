@@ -1,5 +1,5 @@
 // 메인 애플리케이션 로직
-import { getDomain, formatDate, getDefaultSummary, getDomainColor, getDomainInitial } from './utils.js';
+import { getDomain, formatDate, getDefaultSummary, getDomainColor, getDomainInitial, getDomainIcon } from './utils.js';
 
 // 임시 데이터 (나중에 Firebase로 대체)
 let links = [
@@ -22,6 +22,16 @@ let links = [
         domain: 'getbootstrap.com',
         saved_date: '2025-10-03',
         is_favorite: true
+    },
+    {
+        id: 3,
+        title: 'Keeply - GitHub 저장소',
+        summary: '개인용 메모 및 링크 관리 웹앱',
+        url: 'https://github.com/appleNY/Keeply',
+        thumbnail: 'https://via.placeholder.com/400x200?text=GitHub',
+        domain: 'github.com',
+        saved_date: '2025-10-12',
+        is_favorite: false
     }
 ];
 
@@ -65,13 +75,83 @@ function createLinkCard(link) {
  */
 function createDefaultThumbnail(domain) {
     const colors = getDomainColor(domain);
-    const initial = getDomainInitial(domain);
+    const icon = getDomainIcon(domain);
 
     return `
         <div class="link-thumbnail-default" style="background: linear-gradient(135deg, ${colors[0]} 0%, ${colors[1]} 100%);">
-            ${initial}
+            ${icon}
         </div>
     `;
+}
+
+/**
+ * 로딩 스켈레톤 생성
+ */
+function createSkeletonCard() {
+    return `
+        <div class="skeleton-card">
+            <div class="skeleton-card-content">
+                <div class="skeleton-thumbnail"></div>
+                <div class="skeleton-info">
+                    <div class="skeleton-line title"></div>
+                    <div class="skeleton-line description"></div>
+                    <div class="skeleton-line meta"></div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+/**
+ * 로딩 상태 표시
+ */
+function showLoading() {
+    const linkList = document.getElementById('linkList');
+    linkList.innerHTML = createSkeletonCard() + createSkeletonCard() + createSkeletonCard();
+}
+
+/**
+ * 빈 상태 HTML 생성
+ */
+function createEmptyState() {
+    return `
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <h3 class="empty-title">아직 저장된 링크가 없어요</h3>
+            <p class="empty-message">첫 번째 링크를 추가하고<br>나만의 링크 컬렉션을 만들어보세요!</p>
+            <button class="empty-cta" onclick="document.getElementById('addLinkBtn').click()">
+                + 첫 링크 추가하기
+            </button>
+        </div>
+    `;
+}
+
+/**
+ * 검색 결과 없음 HTML 생성
+ */
+function createNoResultsState(query) {
+    return `
+        <div class="no-results">
+            <div class="no-results-icon">🔍</div>
+            <h3 class="no-results-title">검색 결과가 없어요</h3>
+            <p class="no-results-message">
+                '<span class="no-results-query">${query}</span>'에 대한<br>
+                검색 결과를 찾을 수 없습니다
+            </p>
+            <button class="clear-search-btn" onclick="clearSearch()">
+                검색 초기화
+            </button>
+        </div>
+    `;
+}
+
+/**
+ * 검색 초기화
+ */
+window.clearSearch = function() {
+    const searchInput = document.getElementById('searchInput');
+    searchInput.value = '';
+    renderLinks();
 }
 
 /**
@@ -81,7 +161,7 @@ function renderLinks(linksToRender = links) {
     const linkList = document.getElementById('linkList');
 
     if (linksToRender.length === 0) {
-        linkList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px 0;">저장된 링크가 없습니다.</p>';
+        linkList.innerHTML = createEmptyState();
         return;
     }
 
@@ -129,7 +209,20 @@ function searchLinks(query) {
         link.summary.toLowerCase().includes(query.toLowerCase()) ||
         link.domain.toLowerCase().includes(query.toLowerCase())
     );
-    renderLinks(filtered);
+
+    const linkList = document.getElementById('linkList');
+
+    if (filtered.length === 0 && query.trim() !== '') {
+        // 검색 결과가 없을 때
+        linkList.innerHTML = createNoResultsState(query);
+    } else if (filtered.length === 0 && query.trim() === '') {
+        // 검색어가 없고 원본 데이터도 없을 때
+        linkList.innerHTML = createEmptyState();
+    } else {
+        // 검색 결과가 있을 때
+        linkList.innerHTML = filtered.map(link => createLinkCard(link)).join('');
+        initSwipeDelete();
+    }
 }
 
 /**
@@ -195,9 +288,12 @@ function initSwipeDelete() {
             const diffX = currentX - startX;
             button.classList.remove('swiping');
 
-            // 충분히 스와이프했으면 삭제
+            // 충분히 스와이프했으면 삭제 확인 모달 표시
             if (Math.abs(diffX) > 120) {
-                deleteLink(button);
+                showDeleteModal(button);
+                // 원래 위치로 복귀
+                button.style.transform = '';
+                button.classList.remove('swipe-delete');
             } else {
                 // 원래 위치로 복귀
                 button.style.transform = '';
@@ -209,6 +305,23 @@ function initSwipeDelete() {
             currentX = 0;
         });
     });
+}
+
+/**
+ * 삭제 확인 모달 표시
+ */
+let pendingDeleteElement = null;
+
+function showDeleteModal(buttonElement) {
+    pendingDeleteElement = buttonElement;
+    const modal = document.getElementById('deleteModal');
+    modal.classList.add('show');
+}
+
+function hideDeleteModal() {
+    const modal = document.getElementById('deleteModal');
+    modal.classList.remove('show');
+    pendingDeleteElement = null;
 }
 
 /**
@@ -264,6 +377,29 @@ function initEventListeners() {
     addLinkBtn.addEventListener('click', () => {
         alert('링크 추가 기능은 곧 구현됩니다!');
     });
+
+    // 삭제 확인 모달 버튼
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const deleteModal = document.getElementById('deleteModal');
+
+    cancelDeleteBtn.addEventListener('click', () => {
+        hideDeleteModal();
+    });
+
+    confirmDeleteBtn.addEventListener('click', () => {
+        if (pendingDeleteElement) {
+            deleteLink(pendingDeleteElement);
+        }
+        hideDeleteModal();
+    });
+
+    // 모달 오버레이 클릭 시 닫기
+    deleteModal.addEventListener('click', (e) => {
+        if (e.target === deleteModal) {
+            hideDeleteModal();
+        }
+    });
 }
 
 /**
@@ -271,8 +407,15 @@ function initEventListeners() {
  */
 function init() {
     console.log('Keeply 앱 시작!');
-    renderLinks();
-    initEventListeners();
+
+    // 로딩 표시
+    showLoading();
+
+    // 실제 데이터 로드 시뮬레이션 (나중에 Firebase로 대체)
+    setTimeout(() => {
+        renderLinks();
+        initEventListeners();
+    }, 800);
 }
 
 // 페이지 로드되면 앱 시작
