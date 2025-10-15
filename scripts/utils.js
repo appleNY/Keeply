@@ -43,17 +43,285 @@ export function getDefaultSummary(url) {
 }
 
 /**
- * URL에서 메타데이터 가져오기 (간단 버전)
- * 실제로는 서버나 API 필요, 여기선 기본값만
+ * HTML에서 본문 텍스트 추출 (첫 문단)
+ */
+function extractBodyText(doc) {
+    // 불필요한 태그 제거
+    const unwantedSelectors = 'script, style, nav, header, footer, aside, iframe, noscript';
+    doc.querySelectorAll(unwantedSelectors).forEach(el => el.remove());
+
+    // 본문 텍스트 후보 찾기 (우선순위 순)
+    const candidates = [
+        doc.querySelector('article p'),
+        doc.querySelector('main p'),
+        doc.querySelector('[role="main"] p'),
+        doc.querySelector('.content p'),
+        doc.querySelector('.post p'),
+        doc.querySelector('.article p'),
+        doc.querySelector('p')
+    ];
+
+    // 유효한 첫 번째 문단 찾기
+    for (const candidate of candidates) {
+        if (candidate) {
+            const text = candidate.textContent.trim();
+            // 최소 20자 이상인 문단만 사용
+            if (text.length >= 20) {
+                // 최대 150자로 제한
+                return text.length > 150 ? text.substring(0, 150) + '...' : text;
+            }
+        }
+    }
+
+    return '';
+}
+
+/**
+ * 제목에서 요약 생성 (긴 제목을 짧게)
+ */
+function summarizeTitle(title) {
+    if (!title) return '';
+
+    // 제목이 짧으면 그대로 반환
+    if (title.length <= 60) {
+        return title;
+    }
+
+    // 긴 제목은 첫 60자만 + "..."
+    return title.substring(0, 60) + '...';
+}
+
+/**
+ * 소셜미디어 링크 감지 (백업용)
+ */
+function isSocialMediaLink(url) {
+    const urlLower = url.toLowerCase();
+    return urlLower.includes('facebook.com') || urlLower.includes('fb.com') || urlLower.includes('fb.me') ||
+           urlLower.includes('instagram.com') || urlLower.includes('instagr.am') ||
+           urlLower.includes('twitter.com') || urlLower.includes('x.com') || urlLower.includes('t.co') ||
+           urlLower.includes('tiktok.com') || urlLower.includes('linkedin.com');
+}
+
+/**
+ * Instagram 링크 감지
+ */
+function isInstagramLink(url) {
+    const urlLower = url.toLowerCase();
+    return urlLower.includes('instagram.com') || urlLower.includes('instagr.am');
+}
+
+/**
+ * Instagram oEmbed API를 사용하여 메타데이터 가져오기
+ */
+async function fetchInstagramMetadata(url) {
+    const apiUrl = `https://api.instagram.com/oembed/?url=${encodeURIComponent(url)}`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+    try {
+        const response = await fetch(apiUrl, {
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            throw new Error('Instagram oEmbed API 요청 실패');
+        }
+
+        const data = await response.json();
+
+        // Instagram oEmbed 응답에서 정보 추출
+        return {
+            title: truncateTitle(data.title || 'Instagram 게시물'),
+            description: truncateDescription(data.author_name ? `@${data.author_name}의 게시물` : 'Instagram 게시물'),
+            thumbnail: data.thumbnail_url || ''
+        };
+    } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+    }
+}
+
+/**
+ * 텍스트 길이 제한 (제목용)
+ */
+function truncateTitle(text, maxLength = 50) {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+}
+
+/**
+ * 텍스트 길이 제한 (설명용)
+ */
+function truncateDescription(text, maxLength = 100) {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+}
+
+/**
+ * LinkPreview API를 사용하여 메타데이터 가져오기
+ */
+async function fetchWithLinkPreview(url) {
+    const apiUrl = `https://api.linkpreview.net/?q=${encodeURIComponent(url)}`;
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    try {
+        const response = await fetch(apiUrl, {
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            throw new Error('LinkPreview API 요청 실패');
+        }
+
+        const data = await response.json();
+
+        return {
+            title: truncateTitle(data.title || ''),
+            description: truncateDescription(data.description || ''),
+            thumbnail: data.image || ''
+        };
+    } catch (error) {
+        clearTimeout(timeoutId);
+        throw error;
+    }
+}
+
+/**
+ * URL에서 메타데이터 가져오기 (Open Graph 태그 활용)
+ * Instagram oEmbed → LinkPreview API → AllOrigins 순서로 시도
  */
 export async function fetchMetadata(url) {
-    // 나중에 실제 메타데이터 가져오기 구현
-    // 지금은 기본값 반환
-    return {
-        title: url,
-        thumbnail: 'https://via.placeholder.com/400x200?text=No+Image',
-        description: ''
-    };
+    try {
+        // URL 유효성 검사
+        const urlObj = new URL(url);
+
+        // Instagram 링크는 oEmbed API 우선 시도
+        if (isInstagramLink(url)) {
+            try {
+                const metadata = await fetchInstagramMetadata(url);
+                console.log('✅ Instagram oEmbed API 성공:', metadata);
+                return metadata;
+            } catch (instagramError) {
+                console.log('⚠️ Instagram oEmbed API 실패, LinkPreview로 시도:', instagramError.message);
+            }
+        }
+
+        // LinkPreview API 시도 (일반 링크 및 Instagram 백업)
+        try {
+            const metadata = await fetchWithLinkPreview(url);
+
+            // 제목이 있으면 성공
+            if (metadata.title) {
+                console.log('✅ LinkPreview API 성공:', metadata);
+                return metadata;
+            }
+        } catch (apiError) {
+            console.log('⚠️ LinkPreview API 실패, AllOrigins로 시도:', apiError.message);
+        }
+
+        // LinkPreview 실패 시 AllOrigins API 사용 (타임아웃 5초)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+
+        const response = await fetch(proxyUrl, {
+            method: 'GET',
+            headers: {
+                'Accept': 'text/html'
+            },
+            signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            throw new Error('페이지를 불러올 수 없습니다');
+        }
+
+        const html = await response.text();
+
+        // HTML을 파싱하여 메타 태그 추출
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        // Open Graph 메타 태그 우선 추출
+        const ogTitle = doc.querySelector('meta[property="og:title"]')?.content;
+        const ogDescription = doc.querySelector('meta[property="og:description"]')?.content;
+        const ogImage = doc.querySelector('meta[property="og:image"]')?.content;
+
+        // 백업: 일반 메타 태그
+        const metaDescription = doc.querySelector('meta[name="description"]')?.content;
+        const titleTag = doc.querySelector('title')?.textContent;
+
+        // 제목 결정
+        const finalTitle = ogTitle || titleTag || urlObj.hostname;
+
+        // 설명 결정 (우선순위: OG > 일반 메타 > 본문 첫 문단 > 제목 요약)
+        let finalDescription = ogDescription || metaDescription;
+
+        if (!finalDescription) {
+            // 본문에서 첫 문단 추출 시도
+            const bodyText = extractBodyText(doc);
+            finalDescription = bodyText || summarizeTitle(finalTitle);
+        }
+
+        // 결과 반환 (길이 제한 적용)
+        return {
+            title: truncateTitle(finalTitle),
+            description: truncateDescription(finalDescription),
+            thumbnail: ogImage || ''
+        };
+
+    } catch (error) {
+        console.error('메타데이터 가져오기 실패:', error);
+
+        // 실패 시 기본값 반환
+        try {
+            const urlObj = new URL(url);
+            const hostname = urlObj.hostname.replace('www.', '');
+
+            // 소셜미디어 링크인지 확인
+            const isSocial = isSocialMediaLink(url);
+
+            // 타임아웃 에러인 경우
+            if (error.name === 'AbortError') {
+                return {
+                    title: hostname,
+                    description: isSocial
+                        ? '소셜미디어 링크는 자동으로 정보를 가져올 수 없습니다. 제목과 설명을 직접 입력해주세요.'
+                        : '링크 정보를 불러오는데 시간이 초과되었습니다. 제목과 설명을 직접 입력해주세요.',
+                    thumbnail: '',
+                    isSocialMedia: isSocial
+                };
+            }
+
+            // 기타 에러
+            return {
+                title: hostname,
+                description: isSocial
+                    ? '소셜미디어 링크는 자동으로 정보를 가져올 수 없습니다. 제목과 설명을 직접 입력해주세요.'
+                    : '링크 정보를 자동으로 가져올 수 없습니다. 제목과 설명을 직접 입력해주세요.',
+                thumbnail: '',
+                isSocialMedia: isSocial
+            };
+        } catch {
+            return {
+                title: url,
+                description: '제목과 설명을 직접 입력해주세요.',
+                thumbnail: ''
+            };
+        }
+    }
 }
 
 /**

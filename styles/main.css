@@ -337,22 +337,127 @@ body {
     letter-spacing: -0.1px;
 }
 
-/* 즐겨찾기 아이콘 */
+/* 즐겨찾기 아이콘 - 세로 배치 맨 위 */
 .favorite-icon {
     position: absolute;
     top: 8px;
     right: 8px;
-    font-size: 24px;
+    font-size: 22px;
     cursor: pointer;
     color: #00666C;
     z-index: 10;
-    padding: 10px; /* 터치 영역 확대 (최소 44x44px) */
+    padding: 10px;
     transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     min-width: 44px;
     min-height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+/* 수정 버튼 - 즐겨찾기 아래 */
+.edit-btn {
+    position: absolute;
+    top: 52px;
+    right: 8px;
+    background: none;
+    border: none;
+    color: #BA797D;
+    font-size: 19px;
+    cursor: pointer;
+    padding: 10px;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    opacity: 0;
+    transform: translateX(5px);
+    border-radius: 6px;
+    z-index: 10;
+}
+
+/* 카드 호버 시 수정 버튼 표시 */
+.link-button:hover .edit-btn {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.edit-btn:hover {
+    background: rgba(186, 121, 125, 0.1);
+    transform: scale(1.1);
+    color: #A56A6E;
+}
+
+/* 메모 버튼 - 수정 버튼 아래 */
+.memo-btn {
+    position: absolute;
+    top: 96px;
+    right: 8px;
+    background: none;
+    border: none;
+    color: #00666C;
+    font-size: 19px;
+    cursor: pointer;
+    padding: 10px;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    opacity: 0;
+    transform: translateX(5px);
+    border-radius: 6px;
+    z-index: 10;
+}
+
+/* 카드 호버 시 메모 버튼 표시 */
+.link-button:hover .memo-btn {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.memo-btn:hover {
+    background: rgba(0, 102, 108, 0.1);
+    transform: scale(1.1);
+    color: #005559;
+}
+
+/* 삭제 버튼 - 메모 버튼 아래 */
+.delete-btn {
+    position: absolute;
+    top: 140px;
+    right: 8px;
+    background: none;
+    border: none;
+    color: #8C3F5C;
+    font-size: 19px;
+    cursor: pointer;
+    padding: 10px;
+    min-width: 44px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    opacity: 0;
+    transform: translateX(5px);
+    border-radius: 6px;
+    z-index: 10;
+}
+
+/* 카드 호버 시 삭제 버튼 표시 */
+.link-button:hover .delete-btn {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.delete-btn:hover {
+    background: rgba(140, 63, 92, 0.1);
+    transform: scale(1.1);
+    color: #752F4A;
 }
 
 .favorite-icon:hover {
@@ -388,6 +493,32 @@ body {
 .no-summary {
     color: #E6CFD7;
     font-style: italic;
+}
+
+/* 메모 표시 */
+.link-memo {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 12px;
+    background: rgba(186, 121, 125, 0.08);
+    border-left: 3px solid #BA797D;
+    border-radius: 6px;
+}
+
+.memo-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.memo-text {
+    flex: 1;
+    font-size: 0.95rem;
+    color: #330818;
+    line-height: 1.5;
+    word-break: break-word;
 }
 
 /* 로딩 스켈레톤 */
@@ -699,6 +830,129 @@ body {
     background: #A56A6E;
 }
 
+/* 링크 추가 모달 스타일 */
+.modal-form {
+    max-width: 500px;
+    width: 92%;
+    text-align: left;
+    padding: 0;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 24px 16px;
+    border-bottom: 1px solid rgba(186, 121, 125, 0.1);
+}
+
+.modal-header .modal-title {
+    margin-bottom: 0;
+    font-size: 1.4rem;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 2rem;
+    color: #BA797D;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    line-height: 1;
+}
+
+.modal-close:hover {
+    background: rgba(186, 121, 125, 0.1);
+    transform: rotate(90deg);
+}
+
+.link-form {
+    padding: 24px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #330818;
+    margin-bottom: 8px;
+    letter-spacing: -0.2px;
+}
+
+.form-input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid rgba(186, 121, 125, 0.2);
+    border-radius: 12px;
+    font-size: 1rem;
+    color: #330818;
+    background: white;
+    transition: all 0.3s ease;
+    font-family: inherit;
+}
+
+.form-input::placeholder {
+    color: #C5AEBF;
+}
+
+.form-input:focus {
+    outline: none;
+    border-color: #BA797D;
+    box-shadow: 0 0 0 3px rgba(186, 121, 125, 0.1);
+}
+
+.form-textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+}
+
+.form-hint {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.85rem;
+    color: #BA797D;
+    font-weight: 400;
+}
+
+.form-loading {
+    color: #00666C;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 로딩 스피너 */
+.loading-spinner {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(0, 102, 108, 0.2);
+    border-top-color: #00666C;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.modal-form .modal-buttons {
+    margin-top: 28px;
+}
+
 /* 반응형: 모바일 */
 @media (max-width: 768px) {
     .main-wrapper {
@@ -787,5 +1041,21 @@ body {
         padding-bottom: calc(16px + env(safe-area-inset-bottom));
         font-size: 1.15rem;
         min-height: 60px;
+    }
+
+    /* 모바일에서도 버튼 위치 조정 */
+    .edit-btn {
+        top: 48px;
+        font-size: 17px;
+    }
+
+    .memo-btn {
+        top: 88px;
+        font-size: 17px;
+    }
+
+    .delete-btn {
+        top: 128px;
+        font-size: 17px;
     }
 }

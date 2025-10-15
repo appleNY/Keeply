@@ -92,10 +92,47 @@ keeply/
   - `scripts/firebase.js`에 Firebase 설정 정보 입력
 
 ## 주요 기능 요구사항
-1. 메모 작성/수정/삭제
-2. 링크 저장 및 관리
-3. 모바일 최적화 UI (아이폰 16 Pro 중심)
-4. 간단하고 직관적인 사용자 경험
+
+### ✅ 구현 완료 (2025-10-15 기준)
+1. **링크 추가/수정/삭제**
+   - 모달 기반 링크 추가 UI
+   - 메타데이터 자동 추출 (제목, 설명, 썸네일)
+   - 링크 수정 기능 (제목/설명만 수정 가능)
+   - 링크 삭제 (웹 버튼 + 모바일 스와이프)
+   - URL 유효성 검사 (형식 검사, 중복 체크)
+
+2. **메모 기능**
+   - 링크별 개인 메모 추가/수정
+   - 메모 모달 UI
+   - 메모 표시 영역
+
+3. **데이터 관리**
+   - LocalStorage 기반 저장
+   - 자동 저장 (추가/수정/삭제/즐겨찾기/메모)
+   - 페이지 새로고침 시 데이터 복원
+
+4. **모바일 최적화 UI**
+   - 아이폰 16 Pro 중심 최적화
+   - Safe Area 대응
+   - 터치 최적화 (44x44px 최소 크기)
+   - 스와이프 제스처 지원
+
+5. **사용자 경험**
+   - 로딩 스켈레톤 UI
+   - 친절한 에러 메시지
+   - 빈 상태 디자인
+   - 검색 결과 없음 상태
+
+### ⏳ 예정 기능
+1. **Firebase 연동**
+   - Firestore 데이터베이스 연동
+   - LocalStorage → Firebase 마이그레이션
+   - 실시간 동기화
+
+2. **태그 시스템**
+   - 태그 추가/삭제
+   - 태그별 필터링
+   - 태그 관리
 
 ## 모바일 최적화 지침
 이 프로젝트는 아이폰 16 Pro를 주요 타겟으로 모바일 최적화되었습니다.
@@ -136,7 +173,96 @@ keeply/
 - **점진적 개발**: 한 번에 작은 기능씩 구현하여 이해도 향상
 - **테스트**: 각 단계마다 브라우저에서 동작 확인
 - **Bootstrap 활용**: 가능하면 Bootstrap 컴포넌트 먼저 사용, 필요시 커스텀 CSS 추가
-- **Firebase 연동**: 모든 데이터베이스 작업은 `scripts/firebase.js`의 함수 사용
+- **데이터 저장**: 현재는 LocalStorage 사용, 추후 Firebase로 마이그레이션 예정
+
+## 주요 구현 패턴 및 아키텍처
+
+### 데이터 저장 (LocalStorage)
+```javascript
+// 스토리지 키
+const STORAGE_KEY = 'keeply_links';
+
+// 저장
+function saveLinksToStorage() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(links));
+}
+
+// 불러오기
+function loadLinksFromStorage() {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  return stored ? JSON.parse(stored) : defaultData;
+}
+
+// 모든 변경 시 자동 저장
+// - 링크 추가/수정/삭제
+// - 즐겨찾기 토글
+// - 메모 저장
+```
+
+### 메타데이터 추출 (3단계 Fallback)
+```javascript
+// 1단계: Instagram oEmbed API (인스타그램 전용)
+// 2단계: LinkPreview API (일반 링크, 무료 60req/day)
+// 3단계: AllOrigins (CORS 우회 프록시)
+
+async function fetchMetadata(url) {
+  if (isInstagramLink(url)) {
+    try { return await fetchInstagramMetadata(url); }
+    catch { /* 2단계로 */ }
+  }
+
+  try { return await fetchWithLinkPreview(url); }
+  catch { return await fetchWithAllOrigins(url); }
+}
+```
+
+### 모달 상태 관리
+```javascript
+// 추가 vs 수정 모드 구분
+let currentEditingLinkId = null;
+
+// null: 추가 모드
+// 숫자: 수정 모드 (해당 링크 ID)
+
+function handleAddLink() {
+  if (currentEditingLinkId !== null) {
+    // 수정 로직
+  } else {
+    // 추가 로직
+  }
+}
+```
+
+### 유효성 검사
+```javascript
+function validateUrl(url, isEditMode) {
+  // 1. URL 형식 검사
+  try { new URL(url); }
+  catch { showUrlError('올바른 URL 형식이 아닙니다'); return false; }
+
+  // 2. 중복 체크 (추가 모드에서만)
+  if (!isEditMode && links.some(link => link.url === url)) {
+    showUrlError('이미 저장된 링크입니다');
+    return false;
+  }
+
+  return true;
+}
+```
+
+### 에러 처리
+```javascript
+// 네트워크 에러별 친절한 메시지
+catch (error) {
+  if (error.name === 'AbortError') {
+    showUrlError('요청 시간이 초과되었습니다');
+  } else if (!navigator.onLine) {
+    showUrlError('인터넷 연결을 확인해주세요');
+  } else {
+    showUrlError('링크 정보를 자동으로 가져올 수 없습니다');
+  }
+}
+```
 
 ## 학습 중심 개발
 - 새로운 개념 도입 시 반드시 설명 추가
