@@ -1,8 +1,12 @@
 // 메인 애플리케이션 로직
 import { getDomain, formatDate, getDefaultSummary, getDomainColor, getDomainInitial, getDomainIcon, fetchMetadata } from './utils.js';
+import { initAuth, getCurrentUser, getLinks, addLink as firebaseAddLink, updateLink as firebaseUpdateLink, deleteLink as firebaseDeleteLink, getUserProfile, logOut } from './firebase.js';
 
-// LocalStorage 키
+// LocalStorage 키 (마이그레이션용)
 const STORAGE_KEY = 'keeply_links';
+
+// 현재 사용자 정보
+let userProfile = null;
 
 /**
  * LocalStorage에서 링크 불러오기
@@ -209,13 +213,23 @@ window.clearSearch = function() {
  */
 function renderLinks(linksToRender = links) {
     const linkList = document.getElementById('linkList');
+    const addLinkBtn = document.getElementById('addLinkBtn');
 
     if (linksToRender.length === 0) {
         linkList.innerHTML = createEmptyState();
+        // 링크가 없으면 하단 고정 버튼 숨김
+        if (addLinkBtn) {
+            addLinkBtn.style.display = 'none';
+        }
         return;
     }
 
     linkList.innerHTML = linksToRender.map(link => createLinkCard(link)).join('');
+
+    // 링크가 있으면 하단 고정 버튼 표시
+    if (addLinkBtn) {
+        addLinkBtn.style.display = 'flex';
+    }
 
     // 스와이프 기능 초기화
     initSwipeDelete();
@@ -253,25 +267,33 @@ window.openMemoModal = function(linkId) {
 /**
  * 메모 저장
  */
-function saveMemo() {
+async function saveMemo() {
     if (currentMemoLinkId === null) return;
 
     const link = links.find(l => l.id === currentMemoLinkId);
     const memoText = document.getElementById('memoText').value.trim();
 
     if (link && memoText) {
-        link.memo = memoText;
+        try {
+            // Firebase 업데이트
+            await firebaseUpdateLink(currentMemoLinkId, {
+                memo: memoText
+            });
 
-        // LocalStorage에 저장
-        saveLinksToStorage();
+            // 로컬 배열도 업데이트
+            link.memo = memoText;
 
-        renderLinks();
+            renderLinks();
 
-        // 모달 닫기
-        const memoModal = document.getElementById('memoModal');
-        memoModal.classList.remove('show');
+            // 모달 닫기
+            const memoModal = document.getElementById('memoModal');
+            memoModal.classList.remove('show');
 
-        console.log(`✅ 링크 ${currentMemoLinkId} 메모 저장:`, memoText);
+            console.log(`✅ 링크 ${currentMemoLinkId} 메모 저장:`, memoText);
+        } catch (error) {
+            console.error('❌ 메모 저장 실패:', error);
+            alert('메모 저장에 실패했습니다.');
+        }
     }
 
     currentMemoLinkId = null;
@@ -280,25 +302,35 @@ function saveMemo() {
 /**
  * 즐겨찾기 토글
  */
-window.toggleFavorite = function(linkId) {
+window.toggleFavorite = async function(linkId) {
     const link = links.find(l => l.id === linkId);
     if (link) {
-        link.is_favorite = !link.is_favorite;
+        const newFavoriteState = !link.is_favorite;
 
-        // LocalStorage에 저장
-        saveLinksToStorage();
+        try {
+            // Firebase 업데이트
+            await firebaseUpdateLink(linkId, {
+                is_favorite: newFavoriteState
+            });
 
-        // 애니메이션을 위해 아이콘 찾기
-        const icons = document.querySelectorAll('.favorite-icon');
-        icons.forEach(icon => {
-            if (icon.onclick && icon.onclick.toString().includes(`toggleFavorite(${linkId})`)) {
-                icon.classList.add('favorited');
-                setTimeout(() => icon.classList.remove('favorited'), 600);
-            }
-        });
+            // 로컬 배열도 업데이트
+            link.is_favorite = newFavoriteState;
 
-        renderLinks();
-        console.log(`✅ 링크 ${linkId} 즐겨찾기: ${link.is_favorite}`);
+            // 애니메이션을 위해 아이콘 찾기
+            const icons = document.querySelectorAll('.favorite-icon');
+            icons.forEach(icon => {
+                if (icon.onclick && icon.onclick.toString().includes(`toggleFavorite(${linkId})`)) {
+                    icon.classList.add('favorited');
+                    setTimeout(() => icon.classList.remove('favorited'), 600);
+                }
+            });
+
+            renderLinks();
+            console.log(`✅ 링크 ${linkId} 즐겨찾기: ${link.is_favorite}`);
+        } catch (error) {
+            console.error('❌ 즐겨찾기 업데이트 실패:', error);
+            alert('즐겨찾기 업데이트에 실패했습니다.');
+        }
     }
 }
 
@@ -313,16 +345,27 @@ function searchLinks(query) {
     );
 
     const linkList = document.getElementById('linkList');
+    const addLinkBtn = document.getElementById('addLinkBtn');
 
     if (filtered.length === 0 && query.trim() !== '') {
         // 검색 결과가 없을 때
         linkList.innerHTML = createNoResultsState(query);
+        // 검색 결과 없어도 원본 데이터가 있으면 버튼 표시
+        if (addLinkBtn) {
+            addLinkBtn.style.display = links.length > 0 ? 'flex' : 'none';
+        }
     } else if (filtered.length === 0 && query.trim() === '') {
         // 검색어가 없고 원본 데이터도 없을 때
         linkList.innerHTML = createEmptyState();
+        if (addLinkBtn) {
+            addLinkBtn.style.display = 'none';
+        }
     } else {
         // 검색 결과가 있을 때
         linkList.innerHTML = filtered.map(link => createLinkCard(link)).join('');
+        if (addLinkBtn) {
+            addLinkBtn.style.display = 'flex';
+        }
         initSwipeDelete();
     }
 }
@@ -583,30 +626,54 @@ function validateUrl(url, isEditMode = false) {
 /**
  * 링크 추가/수정 처리
  */
-function handleAddLink() {
+async function handleAddLink() {
+    console.log('🔵 handleAddLink 시작');
+
     // 폼 데이터 가져오기
     const url = document.getElementById('linkUrl').value.trim();
     const title = document.getElementById('linkTitle').value.trim();
     const description = document.getElementById('linkDescription').value.trim();
 
+    console.log('📝 입력 데이터:', { url, title, description });
+
     // 에러 메시지 초기화
     hideUrlError();
+
+    // 현재 사용자 확인
+    const user = getCurrentUser();
+    console.log('👤 현재 사용자:', user ? user.uid : 'null');
+
+    if (!user) {
+        console.error('❌ 사용자 없음');
+        showUrlError('로그인이 필요합니다.');
+        return;
+    }
 
     // 수정 모드인지 확인
     if (currentEditingLinkId !== null) {
         // 링크 수정
         const link = links.find(l => l.id === currentEditingLinkId);
         if (link) {
-            link.title = title;
-            link.summary = description;
+            try {
+                // Firebase 업데이트
+                await firebaseUpdateLink(currentEditingLinkId, {
+                    title: title,
+                    summary: description
+                });
 
-            // LocalStorage에 저장
-            saveLinksToStorage();
+                // 로컬 배열도 업데이트
+                link.title = title;
+                link.summary = description;
 
-            // 화면 갱신
-            renderLinks();
+                // 화면 갱신
+                renderLinks();
 
-            console.log('✅ 링크 수정됨:', link);
+                console.log('✅ 링크 수정됨:', link);
+            } catch (error) {
+                console.error('❌ 링크 수정 실패:', error);
+                showUrlError('링크 수정에 실패했습니다.');
+                return;
+            }
         }
 
         // 수정 모드 종료
@@ -627,8 +694,7 @@ function handleAddLink() {
             : `https://via.placeholder.com/400x200?text=${encodeURIComponent(title)}`;
 
         // 새 링크 객체 생성
-        const newLink = {
-            id: Date.now(), // 임시 ID (타임스탬프 사용)
+        const newLinkData = {
             title: title,
             summary: description,
             url: url,
@@ -638,19 +704,36 @@ function handleAddLink() {
             is_favorite: false
         };
 
-        // 배열 맨 앞에 추가 (최신 링크가 위로)
-        links.unshift(newLink);
+        console.log('🔥 Firebase에 저장 시작:', newLinkData);
 
-        // LocalStorage에 저장
-        saveLinksToStorage();
+        try {
+            // Firebase에 추가
+            const firebaseId = await firebaseAddLink(newLinkData, user.uid);
+            console.log('✅ Firebase 저장 성공, ID:', firebaseId);
 
-        // 화면 갱신
-        renderLinks();
+            // 로컬 배열에도 추가 (Firebase ID 사용)
+            const newLink = {
+                id: firebaseId,
+                ...newLinkData
+            };
+            links.unshift(newLink);
+            console.log('✅ 로컬 배열 업데이트 완료');
 
-        console.log('✅ 새 링크 추가됨:', newLink);
+            // 화면 갱신
+            renderLinks();
+            console.log('✅ 화면 렌더링 완료');
 
-        // 맨 위로 스크롤
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+            console.log('✅ 새 링크 추가 완료:', newLink);
+
+            // 맨 위로 스크롤
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (error) {
+            console.error('❌ 링크 추가 실패 (상세):', error);
+            console.error('❌ 에러 코드:', error.code);
+            console.error('❌ 에러 메시지:', error.message);
+            showUrlError(`링크 추가에 실패했습니다: ${error.message}`);
+            return;
+        }
     }
 
     // 모달 닫기
@@ -690,22 +773,30 @@ function hideDeleteModal() {
 /**
  * 링크 삭제
  */
-function deleteLink(buttonElement) {
-    const linkId = parseInt(buttonElement.getAttribute('data-link-id'));
+async function deleteLink(buttonElement) {
+    const linkId = buttonElement.getAttribute('data-link-id');
 
     // 삭제 애니메이션
     buttonElement.style.transform = 'translateX(-100%)';
     buttonElement.style.opacity = '0';
 
-    setTimeout(() => {
-        // 데이터에서 삭제
-        links = links.filter(link => link.id !== linkId);
+    setTimeout(async () => {
+        try {
+            // Firebase에서 삭제
+            await firebaseDeleteLink(linkId);
 
-        // LocalStorage에 저장
-        saveLinksToStorage();
+            // 로컬 배열에서도 삭제
+            links = links.filter(link => link.id !== linkId);
 
-        renderLinks();
-        console.log(`✅ 링크 ${linkId} 삭제됨`);
+            renderLinks();
+            console.log(`✅ 링크 ${linkId} 삭제됨`);
+        } catch (error) {
+            console.error('❌ 링크 삭제 실패:', error);
+            alert('링크 삭제에 실패했습니다.');
+            // 애니메이션 복구
+            buttonElement.style.transform = '';
+            buttonElement.style.opacity = '';
+        }
     }, 300);
 }
 
@@ -792,6 +883,10 @@ function initEventListeners() {
         addLinkModal.classList.add('show');
         linkForm.reset(); // 폼 초기화
 
+        // 메타데이터 관련 초기화
+        currentMetadata = null;
+        lastFetchedUrl = '';
+
         // 힌트 표시 초기화
         document.getElementById('urlHint').style.display = 'block';
         document.getElementById('urlLoading').style.display = 'none';
@@ -799,22 +894,46 @@ function initEventListeners() {
         hideUrlError(); // 에러 메시지 숨기기
     });
 
-    // URL 입력 필드에서 포커스 벗어날 때 메타데이터 자동 가져오기
+    // URL 입력 필드에서 메타데이터 자동 가져오기
     let urlFetchTimeout = null;
-    linkUrlInput.addEventListener('blur', (e) => {
-        const url = e.target.value.trim();
-        if (url) {
-            // 짧은 지연 후 메타데이터 가져오기 (사용자가 다른 필드로 이동할 시간 확보)
-            urlFetchTimeout = setTimeout(() => {
-                autoFillMetadata(url);
-            }, 300);
-        }
-    });
+    let lastFetchedUrl = '';
 
-    // URL 입력 중일 때는 타이머 취소
-    linkUrlInput.addEventListener('focus', () => {
+    // 입력 중에 실시간으로 감지 (debounce)
+    linkUrlInput.addEventListener('input', (e) => {
+        const url = e.target.value.trim();
+
+        // 이전 타이머 취소
         if (urlFetchTimeout) {
             clearTimeout(urlFetchTimeout);
+        }
+
+        // URL이 비어있거나 이미 가져온 URL이면 종료
+        if (!url || url === lastFetchedUrl) {
+            return;
+        }
+
+        // URL 형식 간단 체크
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            return;
+        }
+
+        // 1초 대기 후 메타데이터 가져오기 (사용자가 입력을 멈출 때까지 대기)
+        urlFetchTimeout = setTimeout(() => {
+            lastFetchedUrl = url;
+            autoFillMetadata(url);
+        }, 1000);
+    });
+
+    // 포커스 벗어날 때도 체크 (입력 완료 시)
+    linkUrlInput.addEventListener('blur', (e) => {
+        const url = e.target.value.trim();
+        if (url && url !== lastFetchedUrl) {
+            // 타이머 취소하고 즉시 가져오기
+            if (urlFetchTimeout) {
+                clearTimeout(urlFetchTimeout);
+            }
+            lastFetchedUrl = url;
+            autoFillMetadata(url);
         }
     });
 
@@ -865,6 +984,92 @@ function initEventListeners() {
 }
 
 /**
+ * 로그아웃 버튼 추가
+ */
+function addLogoutButton() {
+    const profileSection = document.querySelector('.profile-section');
+
+    // 이미 버튼이 있으면 추가하지 않음
+    if (document.getElementById('logoutBtn')) return;
+
+    const logoutBtn = document.createElement('button');
+    logoutBtn.id = 'logoutBtn';
+    logoutBtn.className = 'logout-btn';
+    logoutBtn.innerHTML = '로그아웃';
+    logoutBtn.style.cssText = `
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        padding: 8px 16px;
+        background: transparent;
+        border: 1px solid rgba(186, 121, 125, 0.3);
+        border-radius: 20px;
+        color: #BA797D;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.25s ease;
+    `;
+
+    logoutBtn.addEventListener('click', handleLogout);
+    logoutBtn.addEventListener('mouseenter', () => {
+        logoutBtn.style.background = '#BA797D';
+        logoutBtn.style.color = 'white';
+    });
+    logoutBtn.addEventListener('mouseleave', () => {
+        logoutBtn.style.background = 'transparent';
+        logoutBtn.style.color = '#BA797D';
+    });
+
+    profileSection.style.position = 'relative';
+    profileSection.appendChild(logoutBtn);
+}
+
+/**
+ * 로그아웃 처리
+ */
+async function handleLogout() {
+    if (!confirm('로그아웃하시겠습니까?')) return;
+
+    const result = await logOut();
+    if (result.success) {
+        window.location.href = 'auth.html';
+    } else {
+        alert('로그아웃에 실패했습니다.');
+    }
+}
+
+/**
+ * 사용자 프로필 표시
+ */
+function displayUserProfile(profile) {
+    const profileName = document.querySelector('.profile-name');
+    const profileBio = document.querySelector('.profile-bio');
+
+    if (profileName && profile.displayName) {
+        profileName.textContent = profile.displayName;
+    }
+
+    if (profileBio && profile.bio) {
+        profileBio.textContent = profile.bio;
+    }
+}
+
+/**
+ * Firebase에서 링크 데이터 로드
+ */
+async function loadLinksFromFirebase(userId) {
+    try {
+        const firebaseLinks = await getLinks(userId);
+        console.log(`✅ Firebase에서 ${firebaseLinks.length}개 링크 로드 완료`);
+        return firebaseLinks;
+    } catch (error) {
+        console.error('❌ Firebase 링크 로드 실패:', error);
+        return [];
+    }
+}
+
+/**
  * 앱 초기화
  */
 function init() {
@@ -873,11 +1078,92 @@ function init() {
     // 로딩 표시
     showLoading();
 
-    // 실제 데이터 로드 시뮬레이션 (나중에 Firebase로 대체)
-    setTimeout(() => {
-        renderLinks();
-        initEventListeners();
-    }, 800);
+    // Firebase 인증 상태 확인
+    initAuth(async (user) => {
+        if (!user) {
+            // 로그인되지 않음 - 로그인 페이지로 리다이렉트
+            console.log('로그인 필요 - auth.html로 이동');
+            window.location.href = 'auth.html';
+            return;
+        }
+
+        console.log('✅ 로그인됨:', user.email);
+
+        try {
+            // 사용자 프로필 가져오기
+            const profileResult = await getUserProfile(user.uid);
+            if (profileResult.success) {
+                userProfile = profileResult.data;
+                displayUserProfile(userProfile);
+                console.log('✅ 사용자 프로필 로드 완료:', userProfile.displayName);
+            }
+
+            // Firebase에서 링크 데이터 로드
+            const firebaseLinks = await loadLinksFromFirebase(user.uid);
+
+            // LocalStorage 마이그레이션 체크 (첫 로그인 시)
+            const localLinks = loadLinksFromStorage();
+            // 샘플 데이터 필터링 (id가 1, 2, 3인 기본 샘플은 제외)
+            const realLocalLinks = localLinks.filter(link => link.id > 3);
+
+            if (realLocalLinks.length > 0 && firebaseLinks.length === 0) {
+                console.log(`🔄 LocalStorage 데이터 ${realLocalLinks.length}개를 Firebase로 마이그레이션 시작...`);
+                await migrateLocalStorageToFirebase(realLocalLinks, user.uid);
+                // 마이그레이션 후 다시 로드
+                links = await loadLinksFromFirebase(user.uid);
+            } else {
+                links = firebaseLinks;
+                // LocalStorage 샘플 데이터만 있다면 삭제
+                if (localLinks.length > 0 && realLocalLinks.length === 0) {
+                    localStorage.removeItem(STORAGE_KEY);
+                    console.log('🗑️ LocalStorage 샘플 데이터 삭제 완료');
+                }
+            }
+
+            // UI 렌더링
+            renderLinks();
+            initEventListeners();
+            addLogoutButton();
+
+        } catch (error) {
+            console.error('❌ 초기화 실패:', error);
+            alert('데이터를 불러오는 중 오류가 발생했습니다.');
+        }
+    });
+}
+
+/**
+ * LocalStorage 데이터를 Firebase로 마이그레이션
+ */
+async function migrateLocalStorageToFirebase(localLinks, userId) {
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const link of localLinks) {
+        try {
+            // id 필드 제거 (Firebase가 자동 생성)
+            const { id, ...linkData } = link;
+            await firebaseAddLink(linkData, userId);
+            successCount++;
+            console.log(`✅ 마이그레이션 성공 (${successCount}/${localLinks.length}):`, link.title);
+        } catch (error) {
+            failCount++;
+            console.error(`❌ 마이그레이션 실패 (${link.title}):`, error);
+        }
+    }
+
+    // 마이그레이션 완료 후 LocalStorage 삭제
+    localStorage.removeItem(STORAGE_KEY);
+    console.log('🗑️ LocalStorage 데이터 삭제 완료');
+
+    if (successCount > 0) {
+        console.log(`✅ 마이그레이션 완료: ${successCount}개 성공, ${failCount}개 실패`);
+        if (failCount === 0) {
+            alert(`기존 데이터 ${successCount}개를 성공적으로 가져왔습니다!`);
+        } else {
+            alert(`기존 데이터 ${successCount}개를 가져왔습니다. (${failCount}개 실패)`);
+        }
+    }
 }
 
 // 페이지 로드되면 앱 시작

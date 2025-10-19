@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Keeply">
+    <meta name="description" content="개인용 메모 및 링크 관리 웹앱">
+    <meta name="theme-color" content="#BA797D">
+    <title>Keeply - 로그인</title>
+
+    <!-- Bootstrap CSS (CDN) -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- 웹폰트: Noto Sans KR (한글) + Poppins (영문) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Auth 페이지 전용 CSS -->
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #F5E9EA 0%, #E6CFD7 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 420px;
+            padding: 0 20px;
+        }
+
+        .auth-card {
+            background: white;
+            border-radius: 24px;
+            padding: 48px 36px;
+            box-shadow: 0 4px 20px rgba(186, 121, 125, 0.12);
+        }
+
+        .auth-logo {
+            text-align: center;
+            margin-bottom: 36px;
+        }
+
+        .auth-logo h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #330818;
+            margin-bottom: 8px;
+        }
+
+        .auth-logo p {
+            font-size: 1rem;
+            color: #00666C;
+        }
+
+        .auth-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .auth-tab {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            color: #BA797D;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+
+        .auth-tab.active {
+            background: #BA797D;
+            color: white;
+            box-shadow: 0 2px 8px rgba(186, 121, 125, 0.2);
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #330818;
+            font-weight: 500;
+            font-size: 0.95rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid rgba(186, 121, 125, 0.15);
+            border-radius: 12px;
+            font-size: 1rem;
+            color: #330818;
+            transition: all 0.25s ease;
+            font-family: 'Noto Sans KR', sans-serif;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #BA797D;
+            box-shadow: 0 0 0 3px rgba(186, 121, 125, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: #C5AEBF;
+        }
+
+        .error-message {
+            display: none;
+            margin-top: 8px;
+            color: #8C3F5C;
+            font-size: 0.9rem;
+            padding: 10px 14px;
+            background: rgba(140, 63, 92, 0.08);
+            border-radius: 8px;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            background: #BA797D;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            margin-top: 8px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(186, 121, 125, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(0);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading-spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .submit-btn.loading .btn-text {
+            display: none;
+        }
+
+        .submit-btn.loading .loading-spinner {
+            display: block;
+        }
+
+        /* 모바일 최적화 */
+        @media (max-width: 480px) {
+            .auth-card {
+                padding: 36px 24px;
+            }
+
+            .auth-logo h1 {
+                font-size: 2rem;
+            }
+
+            .form-input {
+                font-size: 16px; /* 자동 확대 방지 */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <!-- 로고 -->
+            <div class="auth-logo">
+                <h1>Keeply</h1>
+                <p>나의 링크 저장소</p>
+            </div>
+
+            <!-- 탭 -->
+            <div class="auth-tabs">
+                <button class="auth-tab active" id="loginTab">로그인</button>
+                <button class="auth-tab" id="signupTab">회원가입</button>
+            </div>
+
+            <!-- 로그인 폼 -->
+            <form class="auth-form active" id="loginForm">
+                <div class="form-group">
+                    <label class="form-label" for="loginEmail">이메일</label>
+                    <input type="email" class="form-input" id="loginEmail" placeholder="example@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="loginPassword">비밀번호</label>
+                    <input type="password" class="form-input" id="loginPassword" placeholder="최소 6자 이상" required>
+                </div>
+                <div class="error-message" id="loginError"></div>
+                <button type="submit" class="submit-btn" id="loginBtn">
+                    <span class="btn-text">로그인</span>
+                    <div class="loading-spinner"></div>
+                </button>
+            </form>
+
+            <!-- 회원가입 폼 -->
+            <form class="auth-form" id="signupForm">
+                <div class="form-group">
+                    <label class="form-label" for="signupName">이름</label>
+                    <input type="text" class="form-input" id="signupName" placeholder="홍길동" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="signupEmail">이메일</label>
+                    <input type="email" class="form-input" id="signupEmail" placeholder="example@email.com" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="signupPassword">비밀번호</label>
+                    <input type="password" class="form-input" id="signupPassword" placeholder="최소 6자 이상" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="signupPasswordConfirm">비밀번호 확인</label>
+                    <input type="password" class="form-input" id="signupPasswordConfirm" placeholder="비밀번호 재입력" required>
+                </div>
+                <div class="error-message" id="signupError"></div>
+                <button type="submit" class="submit-btn" id="signupBtn">
+                    <span class="btn-text">회원가입</span>
+                    <div class="loading-spinner"></div>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script type="module" src="scripts/auth.js"></script>
+</body>
+</html>
