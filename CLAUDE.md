@@ -87,9 +87,14 @@ keeply/
   - HTML 파일에서 우클릭 → "Open with Live Server"
   - 파일 변경 시 자동으로 브라우저 새로고침
 - **Firebase 설정**:
-  - Firebase Console에서 프로젝트 생성
+  - Firebase Console에서 프로젝트 생성 (keeply-a2a31)
+  - Firebase Authentication 활성화 (Email/Password)
   - Firestore Database 활성화
-  - `scripts/firebase.js`에 Firebase 설정 정보 입력
+  - **보안 설정** (중요!):
+    - `scripts/firebase-config.example.js`를 복사하여 `scripts/firebase-config.js` 생성
+    - Firebase Console에서 받은 실제 API 키를 `firebase-config.js`에 입력
+    - ⚠️ `firebase-config.js`는 `.gitignore`에 포함되어 Git에 커밋되지 않음
+    - GitHub 등 공개 저장소에 API 키가 노출되지 않도록 주의
 
 ## 주요 기능 요구사항
 
@@ -196,30 +201,50 @@ keeply/
 - **점진적 개발**: 한 번에 작은 기능씩 구현하여 이해도 향상
 - **테스트**: 각 단계마다 브라우저에서 동작 확인
 - **Bootstrap 활용**: 가능하면 Bootstrap 컴포넌트 먼저 사용, 필요시 커스텀 CSS 추가
-- **데이터 저장**: 현재는 LocalStorage 사용, 추후 Firebase로 마이그레이션 예정
+- **데이터 저장**: Firestore 기반 (사용자별 데이터 격리)
+- **보안**: API 키는 별도 파일(`firebase-config.js`)로 분리하여 Git 추적 제외
 
 ## 주요 구현 패턴 및 아키텍처
 
-### 데이터 저장 (LocalStorage)
+### Firebase 보안 설정 (중요!)
 ```javascript
-// 스토리지 키
-const STORAGE_KEY = 'keeply_links';
+// ⚠️ Firebase 설정은 별도 파일로 분리
+// scripts/firebase.js에서 import
+import { firebaseConfig } from './firebase-config.js';
 
-// 저장
-function saveLinksToStorage() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(links));
+// firebase-config.js 파일은 .gitignore에 포함되어 Git에 커밋되지 않음
+// 템플릿 파일: firebase-config.example.js
+```
+
+**설정 방법**:
+1. `scripts/firebase-config.example.js`를 복사하여 `scripts/firebase-config.js` 생성
+2. Firebase Console에서 받은 실제 API 키 입력
+3. `.gitignore`에 `scripts/firebase-config.js` 포함 확인 (이미 설정됨)
+
+### 데이터 저장 (Firestore)
+```javascript
+// 사용자별 링크 조회
+async function getLinks(userId) {
+  const q = query(
+    collection(db, 'links'),
+    where('userId', '==', userId)
+  );
+  const snapshot = await getDocs(q);
+  return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 }
 
-// 불러오기
-function loadLinksFromStorage() {
-  const stored = localStorage.getItem(STORAGE_KEY);
-  return stored ? JSON.parse(stored) : defaultData;
+// 링크 추가 (userId 자동 포함)
+async function addLink(linkData, userId) {
+  const docRef = await addDoc(collection(db, 'links'), {
+    ...linkData,
+    userId: userId,
+    created_at: new Date().toISOString()
+  });
+  return docRef.id;
 }
 
-// 모든 변경 시 자동 저장
-// - 링크 추가/수정/삭제
-// - 즐겨찾기 토글
-// - 메모 저장
+// LocalStorage → Firestore 마이그레이션 (첫 로그인 시)
+// 샘플 데이터(id ≤ 3) 필터링하여 실제 데이터만 이전
 ```
 
 ### 메타데이터 추출 (3단계 Fallback)

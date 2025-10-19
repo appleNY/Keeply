@@ -260,6 +260,12 @@
   - 링크 있을 때 하단 고정 버튼 표시
   - 실시간 URL 감지 및 메타데이터 자동 채우기 (Debounce 1초)
   - 디버깅 로그 추가 (개발 중)
+- [x] **보안 강화 (2025-10-19)** 🔐
+  - Firebase API 키를 별도 파일로 분리 (`firebase-config.js`)
+  - `.gitignore`에 `firebase-config.js` 추가 (Git 추적 제외)
+  - 템플릿 파일 제공 (`firebase-config.example.js`)
+  - 새로운 Firebase 앱 생성으로 API 키 재발급
+  - GitHub Secret Scanning 경고 해결
 
 ---
 
