@@ -9,7 +9,7 @@ node_modules/
 .env.production.local
 
 # Firebase config (보안을 위해 실제 설정값은 제외)
-# scripts/firebase.js는 템플릿만 포함
+scripts/firebase-config.js
 
 # IDE
 .vscode/

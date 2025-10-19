@@ -24,16 +24,8 @@ import {
     getDoc
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
-// Firebase 설정 (실제 프로젝트 정보)
-const firebaseConfig = {
-    apiKey: "AIzaSyB1SOLg_vQc5oBxWqT-JI0Zz_8PgGhg1XM",
-    authDomain: "keeply-a2a31.firebaseapp.com",
-    projectId: "keeply-a2a31",
-    storageBucket: "keeply-a2a31.firebasestorage.app",
-    messagingSenderId: "268642677157",
-    appId: "1:268642677157:web:54c86e3835559a5a0e784c",
-    measurementId: "G-9VYB6C5MV0"
-};
+// Firebase 설정 가져오기 (별도 파일에서 import)
+import { firebaseConfig } from './firebase-config.js';
 
 // Firebase 초기화
 const app = initializeApp(firebaseConfig);
