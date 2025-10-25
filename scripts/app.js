@@ -88,7 +88,7 @@ function createLinkCard(link) {
     // 메모 표시
     const memoHTML = link.memo ? `
         <div class="link-memo">
-            <span class="memo-icon">📝</span>
+            <span class="memo-icon">💬</span>
             <span class="memo-text">${link.memo}</span>
         </div>
     ` : '';
@@ -102,7 +102,7 @@ function createLinkCard(link) {
                 ✏️
             </button>
             <button class="memo-btn" onclick="event.stopPropagation(); openMemoModal(${link.id})" title="메모 ${link.memo ? '수정' : '추가'}">
-                📝
+                💬
             </button>
             <button class="delete-btn" onclick="event.stopPropagation(); confirmDelete(this)" title="삭제">
                 🗑️
