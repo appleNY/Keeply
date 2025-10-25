@@ -1,6 +1,10 @@
 # Node modules
 node_modules/
 
+# Cloudflare
+.wrangler/
+wrangler.toml
+
 # Environment variables
 .env
 .env.local
@@ -8,7 +12,9 @@ node_modules/
 .env.test.local
 .env.production.local
 
-# Firebase config (보안을 위해 실제 설정값은 제외)
+# Firebase config - Git 형상 관리 제외 (하지만 배포 시에는 포함됨)
+# 클라이언트 API 키는 공개해도 안전하지만, 형상 관리는 하지 않음
+# 배포 시 Cloudflare Pages는 이 파일을 포함하여 업로드함
 scripts/firebase-config.js
 
 # IDE

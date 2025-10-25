@@ -1,0 +1,25 @@
+# Wrangler 배포 시 제외할 파일 목록
+# 참고: .gitignore와 별도로 관리됩니다
+
+# Node modules (배포에 불필요)
+node_modules/
+
+# Git 관련
+.git/
+.gitignore
+
+# 문서 파일 (배포에 불필요)
+*.md
+!README.md
+
+# 개발 도구 설정
+.vscode/
+.idea/
+.DS_Store
+
+# 로그 파일
+*.log
+
+# 기타 임시 파일
+*.tmp
+.cache/

@@ -7,7 +7,12 @@
       "Bash(git remote set-url:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(ipconfig:*)"
+      "Bash(ipconfig:*)",
+      "Bash(cat:*)",
+      "Bash(git reset:*)",
+      "Bash(git restore:*)",
+      "Bash(git log:*)",
+      "Bash(git check-ignore:*)"
     ],
     "deny": [],
     "ask": []

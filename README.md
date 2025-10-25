@@ -38,7 +38,12 @@ Keeply는 인터넷 검색이나 소셜미디어에서 발견한 유용한 링�
   - **Firebase Authentication** - 이메일/비밀번호 인증
   - **Firestore** - NoSQL 실시간 데이터베이스 (사용자별 데이터 격리)
   - **Security Rules** - userId 기반 접근 제어
-  - Hosting - 웹 호스팅 (예정)
+
+### Hosting & Deployment
+- **Cloudflare Pages** - 무료 정적 호스팅
+  - 글로벌 CDN 네트워크
+  - 자동 HTTPS/SSL
+  - 무제한 대역폭
 
 ### 개발 도구
 - **Live Server** (VS Code 확장) - 로컬 개발 서버
@@ -127,19 +132,66 @@ code .
 - 이메일/비밀번호로 회원가입
 - 로그인 후 링크 추가 가능
 
+## 🌐 배포하기
+
+Keeply를 Cloudflare Pages에 무료로 배포할 수 있습니다!
+
+### 빠른 배포 (4단계)
+
+```bash
+# 0. Firebase 설정 파일 준비 (최초 1회만)
+cp scripts/firebase-config.example.js scripts/firebase-config.js
+# → firebase-config.js 파일을 열어서 실제 Firebase 설정 값 입력
+
+# 1. Cloudflare 로그인
+npx wrangler login
+
+# 2. 프로젝트 생성
+npx wrangler pages project create keeply
+
+# 3. 배포 실행
+npm run deploy
+```
+
+→ 완료! `https://keeply.pages.dev`로 접속 가능합니다.
+
+**자세한 가이드**:
+- **[QUICKSTART.md](QUICKSTART.md)** - 빠른 배포 가이드 (3단계)
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - 상세 배포 가이드 (문제 해결 포함)
+
 ## 📖 문서
 
+- **[QUICKSTART.md](QUICKSTART.md)** - 빠른 배포 가이드 (3단계) 🚀
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - 상세 배포 가이드 (문제 해결 포함)
 - **[TODO.md](TODO.md)** - 개발 로드맵 및 할 일 목록
 - **[CLAUDE.md](CLAUDE.md)** - Claude Code를 위한 프로젝트 가이드
 
-## 🔒 보안 주의사항
+## 🔒 보안 정보
 
-**중요**: 이 프로젝트는 민감한 정보를 Git에서 제외합니다:
-- `scripts/firebase-config.js` - Firebase API 키 및 설정
-- `.env` - 환경 변수
+### Firebase 설정 파일 관리
 
-이 파일들은 `.gitignore`에 포함되어 있으며, 대신 `.example` 템플릿 파일을 제공합니다.
-로컬에서 개발할 때는 템플릿을 복사하여 실제 값을 입력하세요.
+`scripts/firebase-config.js` 파일 관리 방식:
+- ❌ **Git 형상 관리 대상이 아님** (`.gitignore`에 포함)
+- ✅ **배포 시에는 포함됨** (로컬에 존재하므로 Wrangler가 업로드)
+- ✅ **공개되어도 안전함** (Firebase Web API 키는 클라이언트 노출 허용)
+
+### Firebase API 키 보안
+
+Firebase Web API 키는 **공개되어도 안전합니다** (Firebase 공식 입장).
+- API 키는 Firebase 프로젝트를 식별하는 용도입니다.
+- 실제 데이터 보호는 **Firestore Security Rules**로 이루어집니다.
+- 사용자 인증(Authentication)과 Security Rules로 데이터 접근을 제어합니다.
+
+**중요**: Firestore Security Rules를 반드시 설정하세요!
+```javascript
+// 예시: 사용자별 데이터 격리
+match /links/{linkId} {
+  allow read, write: if request.auth != null
+                    && request.resource.data.userId == request.auth.uid;
+}
+```
+
+자세한 내용은 [DEPLOYMENT.md](./DEPLOYMENT.md#9단계-firebase-보안-설정-매우-중요) 참고
 
 ## 🔧 개발 현황
 
