@@ -15,6 +15,7 @@ node_modules/
 # 개발 도구 설정
 .vscode/
 .idea/
+.claude/
 .DS_Store
 
 # 로그 파일
