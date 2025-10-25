@@ -398,56 +398,74 @@ function initSwipeDelete() {
 
     linkButtons.forEach(button => {
         let startX = 0;
+        let startY = 0;
         let currentX = 0;
+        let currentY = 0;
         let isSwiping = false;
+        let hasMoved = false; // 실제로 움직였는지 체크
 
         button.addEventListener('touchstart', (e) => {
+            // 버튼 클릭은 무시
+            if (e.target.closest('.favorite-icon, .edit-btn, .memo-btn, .delete-btn')) {
+                return;
+            }
+
             startX = e.touches[0].clientX;
-            isSwiping = true;
-            button.classList.add('swiping');
+            startY = e.touches[0].clientY;
+            isSwiping = false;
+            hasMoved = false;
         });
 
         button.addEventListener('touchmove', (e) => {
-            if (!isSwiping) return;
-
             currentX = e.touches[0].clientX;
+            currentY = e.touches[0].clientY;
             const diffX = currentX - startX;
+            const diffY = currentY - startY;
 
-            // 왼쪽으로만 스와이프 가능
-            if (diffX < 0) {
-                e.preventDefault();
-                button.style.transform = `translateX(${diffX}px)`;
+            // 수평 이동이 수직 이동보다 클 때만 스와이프로 인식
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) {
+                isSwiping = true;
+                hasMoved = true;
+                button.classList.add('swiping');
+            }
 
-                // 일정 거리 이상 스와이프하면 삭제 표시
-                if (Math.abs(diffX) > 80) {
-                    button.classList.add('swipe-delete');
-                } else {
-                    button.classList.remove('swipe-delete');
+            // 스와이프 중일 때만 처리
+            if (isSwiping) {
+                // 왼쪽으로만 스와이프 가능
+                if (diffX < 0) {
+                    e.preventDefault();
+                    button.style.transform = `translateX(${diffX}px)`;
+
+                    // 일정 거리 이상 스와이프하면 삭제 표시
+                    if (Math.abs(diffX) > 80) {
+                        button.classList.add('swipe-delete');
+                    } else {
+                        button.classList.remove('swipe-delete');
+                    }
                 }
             }
         });
 
         button.addEventListener('touchend', (e) => {
-            if (!isSwiping) return;
-
             const diffX = currentX - startX;
             button.classList.remove('swiping');
 
-            // 충분히 스와이프했으면 삭제 확인 모달 표시
-            if (Math.abs(diffX) > 120) {
+            // 실제로 스와이프했을 때만 삭제 처리
+            if (isSwiping && hasMoved && Math.abs(diffX) > 120) {
                 showDeleteModal(button);
-                // 원래 위치로 복귀
-                button.style.transform = '';
-                button.classList.remove('swipe-delete');
-            } else {
-                // 원래 위치로 복귀
-                button.style.transform = '';
-                button.classList.remove('swipe-delete');
             }
 
+            // 원래 위치로 복귀
+            button.style.transform = '';
+            button.classList.remove('swipe-delete');
+
+            // 리셋
             isSwiping = false;
+            hasMoved = false;
             startX = 0;
+            startY = 0;
             currentX = 0;
+            currentY = 0;
         });
     });
 }
