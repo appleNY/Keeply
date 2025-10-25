@@ -136,35 +136,45 @@ code .
 
 Keeply를 Cloudflare Pages에 무료로 배포할 수 있습니다!
 
-### 빠른 배포 (4단계)
+### 사전 준비
 
 ```bash
-# 0. Firebase 설정 파일 준비 (최초 1회만)
+# Node.js 의존성 설치
+npm install
+
+# Firebase 설정 파일 준비 (최초 1회만)
 cp scripts/firebase-config.example.js scripts/firebase-config.js
 # → firebase-config.js 파일을 열어서 실제 Firebase 설정 값 입력
+```
 
-# 1. Cloudflare 로그인
+### 프로덕션 배포
+
+```bash
+# 1. Cloudflare 로그인 (최초 1회)
 npx wrangler login
 
-# 2. 프로젝트 생성
+# 2. Pages 프로젝트 생성 (최초 1회)
 npx wrangler pages project create keeply
+# → Production branch: main 입력
 
 # 3. 배포 실행
 npm run deploy
 ```
 
-→ 완료! `https://keeply.pages.dev`로 접속 가능합니다.
+**배포 완료!** `https://keeply.pages.dev`로 접속 가능합니다.
 
-**자세한 가이드**:
-- **[QUICKSTART.md](QUICKSTART.md)** - 빠른 배포 가이드 (3단계)
-- **[DEPLOYMENT.md](DEPLOYMENT.md)** - 상세 배포 가이드 (문제 해결 포함)
+### 배포 URL 구조
 
-## 📖 문서
+Cloudflare Pages는 두 가지 타입의 URL을 제공합니다:
 
-- **[QUICKSTART.md](QUICKSTART.md)** - 빠른 배포 가이드 (3단계) 🚀
-- **[DEPLOYMENT.md](DEPLOYMENT.md)** - 상세 배포 가이드 (문제 해결 포함)
-- **[TODO.md](TODO.md)** - 개발 로드맵 및 할 일 목록
-- **[CLAUDE.md](CLAUDE.md)** - Claude Code를 위한 프로젝트 가이드
+- **프로덕션 URL**: `https://keeply.pages.dev`
+  - `npm run deploy` 명령어 사용 (main 브랜치)
+  - 실제 서비스용 안정적인 URL
+
+- **프리뷰 URL**: `https://<랜덤해시>.keeply.pages.dev`
+  - `npm run deploy:preview` 명령어 사용
+  - 테스트/개발용 임시 URL
+  - 각 배포마다 고유한 해시 생성
 
 ## 🔒 보안 정보
 
@@ -183,15 +193,32 @@ Firebase Web API 키는 **공개되어도 안전합니다** (Firebase 공식 입
 - 사용자 인증(Authentication)과 Security Rules로 데이터 접근을 제어합니다.
 
 **중요**: Firestore Security Rules를 반드시 설정하세요!
+
+Firebase Console → Firestore Database → 규칙(Rules) 탭에서 다음과 같이 설정:
+
 ```javascript
-// 예시: 사용자별 데이터 격리
-match /links/{linkId} {
-  allow read, write: if request.auth != null
-                    && request.resource.data.userId == request.auth.uid;
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 링크: 본인이 생성한 링크만 읽기/쓰기 가능
+    match /links/{linkId} {
+      allow read, write: if request.auth != null
+                        && request.resource.data.userId == request.auth.uid;
+    }
+
+    // 사용자 프로필: 본인 프로필만 읽기/쓰기 가능
+    match /users/{userId} {
+      allow read, write: if request.auth != null
+                        && request.auth.uid == userId;
+    }
+  }
 }
 ```
 
-자세한 내용은 [DEPLOYMENT.md](./DEPLOYMENT.md#9단계-firebase-보안-설정-매우-중요) 참고
+## 📖 문서
+
+- **[TODO.md](TODO.md)** - 개발 로드맵 및 할 일 목록
+- **[CLAUDE.md](CLAUDE.md)** - Claude Code를 위한 프로젝트 가이드
 
 ## 🔧 개발 현황
 
@@ -237,6 +264,7 @@ match /links/{linkId} {
 ## 📄 라이선스
 
 개인 프로젝트 - 학습 및 개인 사용 목적
+
 
 ## 🙋‍♀️ 제작자
 

@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "echo '로컬 개발: Live Server 확장 프로그램을 사용하세요'",
-    "deploy": "wrangler pages deploy . --project-name=keeply",
-    "deploy:prod": "wrangler pages deploy . --project-name=keeply --branch=main"
+    "deploy": "wrangler pages deploy . --project-name=keeply --branch=main",
+    "deploy:preview": "wrangler pages deploy . --project-name=keeply"
   },
   "keywords": [
     "link-manager",
