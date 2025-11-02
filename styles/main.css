@@ -856,8 +856,12 @@ body {
 .modal-form {
     max-width: 500px;
     width: 92%;
+    max-height: 90vh;
     text-align: left;
     padding: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 
 .modal-header {
@@ -866,6 +870,7 @@ body {
     align-items: center;
     padding: 24px 24px 16px;
     border-bottom: 1px solid rgba(186, 121, 125, 0.1);
+    flex-shrink: 0;
 }
 
 .modal-header .modal-title {
@@ -897,6 +902,9 @@ body {
 
 .link-form {
     padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+    -webkit-overflow-scrolling: touch;
 }
 
 .form-group {
@@ -1141,13 +1149,19 @@ body {
         min-height: 60px;
     }
 
+    /* 모바일 모달 */
+    .modal-form {
+        width: 95%;
+        max-height: 85vh;
+    }
+
     /* 모바일 이미지 미리보기 */
     .image-preview-container {
-        max-height: 250px;
+        max-height: 200px;
     }
 
     .image-preview-container img {
-        max-height: 250px;
+        max-height: 200px;
     }
 
     /* 모바일에서도 버튼 위치 조정 */
