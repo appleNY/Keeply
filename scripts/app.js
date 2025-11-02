@@ -1099,6 +1099,13 @@ function initImageModal() {
             };
             reader.readAsDataURL(file);
 
+            // 파일명에서 자동 제목 추출
+            const imageTitle = document.getElementById('imageTitle');
+            if (!imageTitle.value) { // 제목이 비어있을 때만 자동 채우기
+                const suggestedTitle = extractTitleFromFilename(file.name);
+                imageTitle.value = suggestedTitle;
+            }
+
             // 에러 메시지 숨김
             hideImageError();
         }
@@ -1227,6 +1234,43 @@ function hideImageModal() {
     document.getElementById('imageForm').reset();
     document.getElementById('imagePreviewGroup').style.display = 'none';
     hideImageError();
+}
+
+/**
+ * 파일명에서 제목 추출
+ * @param {string} filename - 파일명 (예: "Screenshot 2024-11-02.png")
+ * @returns {string} - 정리된 제목
+ */
+function extractTitleFromFilename(filename) {
+    // 파일 확장자 제거
+    let title = filename.replace(/\.[^/.]+$/, '');
+
+    // 특수문자와 언더스코어를 공백으로 변환
+    title = title.replace(/[_-]/g, ' ');
+
+    // 날짜 패턴 제거 (예: 2024-11-02, 20241102, 2024.11.02 등)
+    title = title.replace(/\d{4}[-./]\d{1,2}[-./]\d{1,2}/g, '');
+    title = title.replace(/\d{8}/g, '');
+
+    // 시간 패턴 제거 (예: 14:30:25, 143025 등)
+    title = title.replace(/\d{1,2}:\d{2}(:\d{2})?/g, '');
+    title = title.replace(/\d{6}/g, '');
+
+    // "Screenshot", "IMG", "Image" 등 일반적인 접두사 제거
+    title = title.replace(/^(screenshot|screen|img|image|photo|pic|capture)\s*/i, '');
+
+    // 여러 공백을 하나로 정리
+    title = title.replace(/\s+/g, ' ').trim();
+
+    // 제목이 비어있으면 기본값 반환
+    if (!title || title.length < 2) {
+        return '새 이미지';
+    }
+
+    // 첫 글자를 대문자로 (영문인 경우)
+    title = title.charAt(0).toUpperCase() + title.slice(1);
+
+    return title;
 }
 
 /**
