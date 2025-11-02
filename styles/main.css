@@ -983,80 +983,6 @@ body {
     margin-top: 28px;
 }
 
-/* 타입 선택 버튼 */
-.type-select-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    margin-top: 8px;
-}
-
-.type-select-btn {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 24px 20px;
-    background: white;
-    border: 2px solid rgba(186, 121, 125, 0.15);
-    border-radius: 16px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-align: center;
-}
-
-.type-select-btn:hover {
-    border-color: #BA797D;
-    background: rgba(186, 121, 125, 0.04);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(186, 121, 125, 0.15);
-}
-
-.type-select-btn:active {
-    transform: scale(0.98);
-}
-
-.type-icon {
-    font-size: 3rem;
-    margin-bottom: 12px;
-    display: block;
-}
-
-.type-label {
-    font-size: 1.2rem;
-    font-weight: 600;
-    color: #330818;
-    display: block;
-    margin-bottom: 6px;
-    letter-spacing: -0.3px;
-}
-
-.type-desc {
-    font-size: 0.9rem;
-    color: #BA797D;
-    display: block;
-    font-weight: 400;
-}
-
-/* 이미지 미리보기 */
-.image-preview-container {
-    margin-top: 8px;
-    border: 1px solid rgba(186, 121, 125, 0.15);
-    border-radius: 12px;
-    overflow: hidden;
-    background: #f9f9f9;
-    max-height: 400px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.image-preview-container img {
-    display: block;
-    width: 100%;
-    height: auto;
-    max-height: 400px;
-    object-fit: contain;
-}
 
 /* 반응형: 모바일 */
 @media (max-width: 768px) {
@@ -1149,20 +1075,6 @@ body {
         min-height: 60px;
     }
 
-    /* 모바일 모달 */
-    .modal-form {
-        width: 95%;
-        max-height: 85vh;
-    }
-
-    /* 모바일 이미지 미리보기 */
-    .image-preview-container {
-        max-height: 200px;
-    }
-
-    .image-preview-container img {
-        max-height: 200px;
-    }
 
     /* 모바일에서도 버튼 위치 조정 */
     .favorite-icon {

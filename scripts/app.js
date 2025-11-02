@@ -1,6 +1,6 @@
 // 메인 애플리케이션 로직
 import { getDomain, formatDate, getDefaultSummary, getDomainColor, getDomainInitial, getDomainIcon, fetchMetadata } from './utils.js';
-import { initAuth, getCurrentUser, getLinks, addLink as firebaseAddLink, updateLink as firebaseUpdateLink, deleteLink as firebaseDeleteLink, getUserProfile, logOut, uploadImage, deleteImage } from './firebase.js';
+import { initAuth, getCurrentUser, getLinks, addLink as firebaseAddLink, updateLink as firebaseUpdateLink, deleteLink as firebaseDeleteLink, getUserProfile, logOut } from './firebase.js';
 
 // LocalStorage 키 (마이그레이션용)
 const STORAGE_KEY = 'keeply_links';
@@ -887,9 +887,31 @@ function initEventListeners() {
     const linkForm = document.getElementById('linkForm');
     const linkUrlInput = document.getElementById('linkUrl');
 
-    // 모달 열기 - 타입 선택 모달 표시
+    // 모달 열기
     addLinkBtn.addEventListener('click', () => {
-        showTypeSelectModal();
+        // 수정 모드 초기화
+        currentEditingLinkId = null;
+
+        // 모달 제목 초기화
+        document.getElementById('addLinkModalTitle').textContent = '새 링크 추가';
+
+        // URL 필드 활성화
+        linkUrlInput.disabled = false;
+
+        // 폼 초기화
+        linkForm.reset();
+
+        addLinkModal.classList.add('show');
+
+        // 메타데이터 관련 초기화
+        currentMetadata = null;
+        lastFetchedUrl = '';
+
+        // 힌트 표시 초기화
+        document.getElementById('urlHint').style.display = 'block';
+        document.getElementById('urlLoading').style.display = 'none';
+        document.getElementById('urlWarning').style.display = 'none';
+        hideUrlError(); // 에러 메시지 숨기기
     });
 
     // URL 입력 필드에서 메타데이터 자동 가져오기
@@ -979,298 +1001,6 @@ function initEventListeners() {
             hideDeleteModal();
         }
     });
-
-    // 타입 선택 모달
-    initTypeSelectModal();
-
-    // 이미지 추가 모달
-    initImageModal();
-}
-
-/**
- * 타입 선택 모달 초기화
- */
-function initTypeSelectModal() {
-    const typeSelectModal = document.getElementById('typeSelectModal');
-    const selectLinkTypeBtn = document.getElementById('selectLinkTypeBtn');
-    const selectImageTypeBtn = document.getElementById('selectImageTypeBtn');
-    const cancelTypeSelectBtn = document.getElementById('cancelTypeSelectBtn');
-
-    // 웹 링크 선택
-    selectLinkTypeBtn.addEventListener('click', () => {
-        hideTypeSelectModal();
-
-        // 폼 초기화
-        const linkForm = document.getElementById('linkForm');
-        linkForm.reset();
-
-        // 모달 제목 설정
-        document.getElementById('addLinkModalTitle').textContent = '새 링크 추가';
-
-        // URL 필드 활성화
-        const linkUrlInput = document.getElementById('linkUrl');
-        linkUrlInput.disabled = false;
-
-        // 힌트 표시 초기화
-        document.getElementById('urlHint').style.display = 'block';
-        document.getElementById('urlLoading').style.display = 'none';
-        document.getElementById('urlWarning').style.display = 'none';
-        const urlError = document.getElementById('urlError');
-        if (urlError) urlError.style.display = 'none';
-
-        // 기존 링크 추가 모달 열기
-        const addLinkModal = document.getElementById('addLinkModal');
-        addLinkModal.classList.add('show');
-    });
-
-    // 이미지 선택
-    selectImageTypeBtn.addEventListener('click', () => {
-        hideTypeSelectModal();
-        // 이미지 추가 모달 열기
-        const addImageModal = document.getElementById('addImageModal');
-        addImageModal.classList.add('show');
-    });
-
-    // 취소 버튼
-    cancelTypeSelectBtn.addEventListener('click', () => {
-        hideTypeSelectModal();
-    });
-
-    // 모달 오버레이 클릭 시 닫기
-    typeSelectModal.addEventListener('click', (e) => {
-        if (e.target === typeSelectModal) {
-            hideTypeSelectModal();
-        }
-    });
-}
-
-/**
- * 타입 선택 모달 표시
- */
-function showTypeSelectModal() {
-    const modal = document.getElementById('typeSelectModal');
-    modal.classList.add('show');
-}
-
-/**
- * 타입 선택 모달 숨기기
- */
-function hideTypeSelectModal() {
-    const modal = document.getElementById('typeSelectModal');
-    modal.classList.remove('show');
-}
-
-/**
- * 이미지 추가 모달 초기화
- */
-function initImageModal() {
-    const addImageModal = document.getElementById('addImageModal');
-    const closeImageModalBtn = document.getElementById('closeImageModalBtn');
-    const cancelImageBtn = document.getElementById('cancelImageBtn');
-    const imageForm = document.getElementById('imageForm');
-    const imageFile = document.getElementById('imageFile');
-    const imagePreview = document.getElementById('imagePreview');
-    const imagePreviewGroup = document.getElementById('imagePreviewGroup');
-
-    // 파일 선택 시 미리보기
-    imageFile.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            // 파일 크기 체크
-            const maxSize = 5 * 1024 * 1024; // 5MB
-            if (file.size > maxSize) {
-                showImageError('파일 크기는 5MB 이하여야 합니다.');
-                imageFile.value = '';
-                return;
-            }
-
-            // 이미지 파일 체크
-            if (!file.type.startsWith('image/')) {
-                showImageError('이미지 파일만 업로드 가능합니다.');
-                imageFile.value = '';
-                return;
-            }
-
-            // 미리보기 표시
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                imagePreview.src = e.target.result;
-                imagePreviewGroup.style.display = 'block';
-            };
-            reader.readAsDataURL(file);
-
-            // 파일명에서 자동 제목 추출
-            const imageTitle = document.getElementById('imageTitle');
-            if (!imageTitle.value) { // 제목이 비어있을 때만 자동 채우기
-                const suggestedTitle = extractTitleFromFilename(file.name);
-                imageTitle.value = suggestedTitle;
-            }
-
-            // 에러 메시지 숨김
-            hideImageError();
-        }
-    });
-
-    // 모달 닫기 버튼
-    closeImageModalBtn.addEventListener('click', () => {
-        hideImageModal();
-    });
-
-    cancelImageBtn.addEventListener('click', () => {
-        hideImageModal();
-    });
-
-    // 폼 제출
-    imageForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        await handleImageSubmit();
-    });
-
-    // 모달 오버레이 클릭 시 닫기
-    addImageModal.addEventListener('click', (e) => {
-        if (e.target === addImageModal) {
-            hideImageModal();
-        }
-    });
-}
-
-/**
- * 이미지 폼 제출 처리
- */
-async function handleImageSubmit() {
-    const imageFile = document.getElementById('imageFile').files[0];
-    const imageTitle = document.getElementById('imageTitle').value.trim();
-    const imageDescription = document.getElementById('imageDescription').value.trim();
-
-    if (!imageFile || !imageTitle) {
-        showImageError('이미지와 제목을 입력해주세요.');
-        return;
-    }
-
-    try {
-        // 로딩 상태 표시
-        setImageSaveButtonLoading(true);
-
-        // 사용자 정보 가져오기
-        const user = getCurrentUser();
-        if (!user) {
-            throw new Error('로그인이 필요합니다.');
-        }
-
-        // 이미지 업로드
-        const imageUrl = await uploadImage(imageFile, user.uid);
-
-        // Firestore에 저장
-        const imageData = {
-            type: 'image',
-            title: imageTitle,
-            description: imageDescription,
-            imageUrl: imageUrl,
-            url: imageUrl, // 카드 렌더링 호환성을 위해
-            thumbnail: imageUrl,
-            created_at: new Date().toISOString(),
-            favorite: false
-        };
-
-        await firebaseAddLink(imageData, user.uid);
-
-        // 모달 닫기 및 폼 리셋
-        hideImageModal();
-        document.getElementById('imageForm').reset();
-        document.getElementById('imagePreviewGroup').style.display = 'none';
-
-        // 링크 목록 새로고침
-        await loadLinksFromFirebase();
-    } catch (error) {
-        console.error('이미지 업로드 실패:', error);
-        showImageError(error.message || '이미지 업로드에 실패했습니다.');
-    } finally {
-        setImageSaveButtonLoading(false);
-    }
-}
-
-/**
- * 이미지 저장 버튼 로딩 상태 설정
- */
-function setImageSaveButtonLoading(isLoading) {
-    const saveImageBtn = document.getElementById('saveImageBtn');
-    const saveImageBtnText = document.getElementById('saveImageBtnText');
-    const saveImageBtnLoading = document.getElementById('saveImageBtnLoading');
-
-    if (isLoading) {
-        saveImageBtn.disabled = true;
-        saveImageBtnText.style.display = 'none';
-        saveImageBtnLoading.style.display = 'inline-flex';
-    } else {
-        saveImageBtn.disabled = false;
-        saveImageBtnText.style.display = 'inline';
-        saveImageBtnLoading.style.display = 'none';
-    }
-}
-
-/**
- * 이미지 에러 메시지 표시
- */
-function showImageError(message) {
-    const imageError = document.getElementById('imageError');
-    imageError.textContent = `❌ ${message}`;
-    imageError.style.display = 'block';
-}
-
-/**
- * 이미지 에러 메시지 숨기기
- */
-function hideImageError() {
-    const imageError = document.getElementById('imageError');
-    imageError.style.display = 'none';
-}
-
-/**
- * 이미지 모달 숨기기
- */
-function hideImageModal() {
-    const modal = document.getElementById('addImageModal');
-    modal.classList.remove('show');
-    document.getElementById('imageForm').reset();
-    document.getElementById('imagePreviewGroup').style.display = 'none';
-    hideImageError();
-}
-
-/**
- * 파일명에서 제목 추출
- * @param {string} filename - 파일명 (예: "Screenshot 2024-11-02.png")
- * @returns {string} - 정리된 제목
- */
-function extractTitleFromFilename(filename) {
-    // 파일 확장자 제거
-    let title = filename.replace(/\.[^/.]+$/, '');
-
-    // 특수문자와 언더스코어를 공백으로 변환
-    title = title.replace(/[_-]/g, ' ');
-
-    // 날짜 패턴 제거 (예: 2024-11-02, 20241102, 2024.11.02 등)
-    title = title.replace(/\d{4}[-./]\d{1,2}[-./]\d{1,2}/g, '');
-    title = title.replace(/\d{8}/g, '');
-
-    // 시간 패턴 제거 (예: 14:30:25, 143025 등)
-    title = title.replace(/\d{1,2}:\d{2}(:\d{2})?/g, '');
-    title = title.replace(/\d{6}/g, '');
-
-    // "Screenshot", "IMG", "Image" 등 일반적인 접두사 제거
-    title = title.replace(/^(screenshot|screen|img|image|photo|pic|capture)\s*/i, '');
-
-    // 여러 공백을 하나로 정리
-    title = title.replace(/\s+/g, ' ').trim();
-
-    // 제목이 비어있으면 기본값 반환
-    if (!title || title.length < 2) {
-        return '새 이미지';
-    }
-
-    // 첫 글자를 대문자로 (영문인 경우)
-    title = title.charAt(0).toUpperCase() + title.slice(1);
-
-    return title;
 }
 
 /**
