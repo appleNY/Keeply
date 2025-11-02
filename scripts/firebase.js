@@ -23,6 +23,13 @@ import {
     setDoc,
     getDoc
 } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import {
+    getStorage,
+    ref,
+    uploadBytes,
+    getDownloadURL,
+    deleteObject
+} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
 
 // Firebase 설정 가져오기 (별도 파일에서 import)
 import { firebaseConfig } from './firebase-config.js';
@@ -31,6 +38,7 @@ import { firebaseConfig } from './firebase-config.js';
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const storage = getStorage(app);
 
 // 현재 로그인한 사용자
 export let currentUser = null;
@@ -201,6 +209,61 @@ export async function deleteLink(linkId) {
     } catch (error) {
         console.error('링크 삭제 실패:', error);
         throw error;
+    }
+}
+
+/**
+ * 이미지 파일을 Firebase Storage에 업로드
+ * @param {File} file - 업로드할 이미지 파일
+ * @param {string} userId - 사용자 ID
+ * @returns {Promise<string>} - 업로드된 이미지의 다운로드 URL
+ */
+export async function uploadImage(file, userId) {
+    try {
+        // 파일 크기 체크 (5MB 제한)
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+            throw new Error('파일 크기는 5MB 이하여야 합니다.');
+        }
+
+        // 파일 타입 체크
+        if (!file.type.startsWith('image/')) {
+            throw new Error('이미지 파일만 업로드 가능합니다.');
+        }
+
+        // 고유한 파일명 생성 (사용자ID/타임스탬프_원본파일명)
+        const timestamp = Date.now();
+        const fileName = `${timestamp}_${file.name}`;
+        const storagePath = `images/${userId}/${fileName}`;
+
+        // Storage 참조 생성
+        const storageRef = ref(storage, storagePath);
+
+        // 파일 업로드
+        const snapshot = await uploadBytes(storageRef, file);
+
+        // 다운로드 URL 가져오기
+        const downloadURL = await getDownloadURL(snapshot.ref);
+
+        return downloadURL;
+    } catch (error) {
+        console.error('이미지 업로드 실패:', error);
+        throw error;
+    }
+}
+
+/**
+ * Firebase Storage에서 이미지 삭제
+ * @param {string} imageUrl - 삭제할 이미지 URL
+ */
+export async function deleteImage(imageUrl) {
+    try {
+        // URL에서 Storage 경로 추출
+        const imageRef = ref(storage, imageUrl);
+        await deleteObject(imageRef);
+    } catch (error) {
+        console.error('이미지 삭제 실패:', error);
+        // 이미지 삭제 실패는 치명적이지 않으므로 에러를 throw하지 않음
     }
 }
 
